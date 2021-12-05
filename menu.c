@@ -12,6 +12,7 @@ void menu_main() {
     printf("1. Xem bảng điện\n");
     printf("2. Đặt lệnh\n");
     printf("3. Giao dịch trực tiếp\n");
-    printf("4. Đăng xuất\n");
+    printf("4. Quản lý tài khoản\n");
+    printf("5. Đăng xuất\n");
     printf("--------------------------------\n");
 }

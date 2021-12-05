@@ -34,3 +34,4 @@ l_user *get_account(char username[MAX_CHAR]);
 int sign_in(char username[MAX_CHAR], char password[MAX_CHAR]);
 int check_pass(l_user *account, char password[MAX_CHAR]);
 int has_account(char username[MAX_CHAR]);
+void log_out(char username[MAX_CHAR]);

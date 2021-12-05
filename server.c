@@ -26,7 +26,9 @@ void *client_handler(void *arg){
         if (buff[strlen(buff) - 1] == '\n')
             buff[strlen(buff) - 1] = 0;
         printf("String received from client: %s\n", buff);
-        
+        if (strcmp(buff,"5") == 0) {
+            flag = 5;
+        }
         switch(flag) {
             case 1:
                 strcpy(username, buff);
@@ -42,6 +44,7 @@ void *client_handler(void *arg){
                 int status = sign_in(username, password);
                 if(status == 1) {
                     strcpy(response, LOGIN_SUCCESS);
+                    flag++;
                 }else if(status == 3) {
                     strcpy(response, PASSWORD_WRONG);
                     flag = 1;
@@ -49,12 +52,19 @@ void *client_handler(void *arg){
                     strcpy(response, ACCOUNT_BLOCK);
                     flag = 1;
                 }
+                break;   
+            case 5:
+                log_out(username);
+                strcpy(response, "Goobye ");
+                strcat(response, username);
+                strcpy(username, "");
+                strcpy(password, "");
+                flag = 1;
                 break;
         } 
         send(clientfd, response, strlen(response), 0);
         memset(response, 0, strlen(response));
     }
-    close(clientfd);
 }
 
 int create_server(int argc, char **argv) {

@@ -107,3 +107,7 @@ int has_account(char username[MAX_CHAR]) {
     return FALSE;
 }
 
+void log_out(char username[MAX_CHAR]) {
+    l_user *tmp = get_account(username);
+    tmp->is_online = FALSE;
+}

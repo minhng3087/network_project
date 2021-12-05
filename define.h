@@ -25,3 +25,5 @@
 #define ACCOUNT_BLOCK "Tai khoan da bi khoa"
 
 #define PASSWORD_WRONG "Mat khau sai"
+
+#define NOT_LOGGED_IN 0

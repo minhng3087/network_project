@@ -9,24 +9,54 @@ void send_request(int sockfd, char sendline[BUFFER], char recvline[BUFFER]) {
     recvline[n] = '\0';
     if (recvline[strlen(recvline) - 1] == '\n')
         recvline[strlen(recvline) - 1] = 0;
-    printf("%ld\n", strlen(recvline));
+}
+
+int program_main(int sockfd) {
+    char choice_main[2], recvline[BUFFER];
+    while (1) {
+        menu_main();
+        __fpurge(stdin);
+        fgets(choice_main, 2, stdin);
+        int check = choice_main[0] - '0';
+        send(sockfd, choice_main, strlen(choice_main), 0);
+        
+        int n = recv(sockfd, recvline, BUFFER, 0);
+        recvline[n] = '\0';
+        if (recvline[strlen(recvline) - 1] == '\n')
+            recvline[strlen(recvline) - 1] = 0;
+        printf("%s\n", recvline);
+        
+        switch(check) {
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+                return 1;
+            case 5: 
+                return 0;
+        }
+    }
+    
 }
 
 int login(int sockfd) {
     char sendline[BUFFER], recvline[BUFFER];
     int sign_in = 0;
     int choice;
-    while(1) {
+    
+    MENU: while(1) {
         if (sign_in == 0) {
             menu_login();
         }else if (sign_in == 1) {
-            menu_main();
+            sign_in = program_main(sockfd);
+            goto MENU;
         }
+       
         __fpurge(stdin);
         scanf("%d", &choice);
         switch (choice) {
             case 1: 
-                printf(" ________________Đăng nhập__________________\n");
+                printf("_________________Đăng nhập__________________\n");
                 printf("Username: ");
                 __fpurge(stdin);
                 send_request(sockfd, sendline, recvline);
@@ -37,10 +67,12 @@ int login(int sockfd) {
                     printf("%s\n", recvline);
                     sign_in = strcmp(recvline, LOGIN_SUCCESS) == 0 ? 1 : 0;
                 }
-              
                 break;
             case 2:
-                printf(" ________________Đăng ký__________________\n");
+                printf("_________________Đăng ký__________________\n");
+                break;
+            default: 
+                goto MENU;
                 break;
         }
     }
