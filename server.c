@@ -15,26 +15,11 @@
 
 extern l_user *head_user;
 
-void manage_profile_account(int clientfd, char username[MAX_CHAR]) {
-    l_user *user =  get_account(username);
-    char target[BUFFER_SIZE];
-    char response[BUFFER_SIZE];
-    l_stock *stock = user->stock;
-    strcpy(response, "ID NAME BLANCE STATUS\n");
-    sprintf(target, "%d %s %d %d\n", user->id, user->username, user->balance, user->status);
-    strcat(response, target);
-    strcat(response, "List stock\n");
-    while(stock != NULL) {
-        sprintf(target, "%s %d\n", stock->name, stock->price);
-        strcat(response, target);
-        stock = stock->next;
-    }
-    send(clientfd, response, strlen(response), 0);
-}
-
 void *client_handler(void *arg){
-    int clientfd, n, flag = 1;
+    int clientfd, n, flag = 1, check = 0, buy = 0, sell = 0;
     char buff[BUFFER_SIZE], response[BUFFER_SIZE], username[MAX_CHAR], password[MAX_CHAR];
+    char stock_name[MAX_CHAR], price[MAX_CHAR], trader_id[MAX_CHAR], amount[MAX_CHAR], type[MAX_CHAR];
+    l_user *trader;
     pthread_detach(pthread_self());
     clientfd = (intptr_t) arg;
     while(1) {
@@ -43,10 +28,11 @@ void *client_handler(void *arg){
         if (buff[strlen(buff) - 1] == '\n')
             buff[strlen(buff) - 1] = 0;
         printf("String received from client: %s\n", buff);
+        if (strcmp(buff,"3") == 0) {
+            flag = 4;
+        }
         if (strcmp(buff,"5") == 0) {
             flag = 5;
-        }else if (strcmp(buff,"4") == 0) {
-            flag = 4;
         }
         switch(flag) {
             case 1:
@@ -57,7 +43,6 @@ void *client_handler(void *arg){
                 }else {
                     strcpy(response, USERNAME_WRONG);
                 }
-                send(clientfd, response, strlen(response), 0);
                 break;
             case 2:
                 strcpy(password, buff);
@@ -72,11 +57,111 @@ void *client_handler(void *arg){
                     strcpy(response, ACCOUNT_BLOCK);
                     flag = 1;
                 }
-                send(clientfd, response, strlen(response), 0);
-                break;   
-
-            case 4:
-                manage_profile_account(clientfd, username);
+                break;  
+            case 4: 
+                CHOOSE_USER: if(check == 0) {
+                    char str[MAX_CHAR] = "Please choose user you want to transaction: ";
+                    strcat(str, online_users(current_user));
+                    strcpy(response, str);
+                    check++;
+                }else if (check == 1) {
+                    strcpy(trader_id, buff);
+                    trader = trade_user(trader_id);
+                    if(trader) {
+                        strcpy(response, "Please choose action(1.Buy, 2.Sell): ");
+                        check++;
+                    } else {
+                        strcpy(response, "User not online, please try again");
+                        check--;
+                        goto CHOOSE_USER;
+                    }
+                }else if (check == 2) {
+                    if (strcmp(type,"1") == 0) {
+                        if (buy == 1) {
+                            strcpy(stock_name, buff);
+                            if(direct_trade(current_user, trader, stock_name, 0, 1) == TRUE) {
+                                strcpy(response, "Input price: ");
+                                buy++;
+                            } else {
+                                strcpy(response, "Stock not found\n");
+                                char str[MAX_CHAR] = "Please choose stock to buy:";
+                                strcat(str, user_stock_list(trader_id));
+                                strcat(str, "\nName: ");
+                                strcat(response, str);
+                            }
+                        } else if (buy == 2) {
+                            strcpy(price, buff);
+                            snprintf(amount, MAX_CHAR,"%d", direct_trade(current_user, trader, stock_name, atoi(price), 1));
+                            strcpy(response, "Valid amount (");
+                            strcat(response, amount);
+                            strcat(response, ")");
+                            if (atoi(amount) == 0) {
+                                strcat(response, "Your balance is not enough!\n");
+                                strcat(response, "Input price: ");
+                            } else {
+                                strcat(response, "\nInput amount: ");
+                                buy++;
+                            }
+                        } else if (buy == 3) {
+                            if (atoi(buff) > atoi(amount)) {
+                                strcpy(response, "Invalid amount, input again:");
+                            } else {
+                                strcpy(response, "Please wait...");
+                            }
+                        }
+                    } else if (strcmp(type,"2") == 0) {
+                        if (sell == 1) {
+                            strcpy(stock_name, buff);
+                            if(direct_trade(current_user, trader, stock_name, 0, 2) == TRUE) {
+                                strcpy(response, "Price: ");
+                                sell++;
+                            } else {
+                                strcpy(response, "Stock not found\n");
+                                char str[MAX_CHAR] = "Please choose stock to sell:";
+                                snprintf(trader_id, MAX_CHAR,"%d", current_user->id);
+                                strcat(str, user_stock_list(trader_id));
+                                strcat(str, "\nName: ");
+                                strcat(response, str);
+                            }
+                        } else if (sell == 2) {
+                            strcpy(price, buff);
+                            snprintf(amount, MAX_CHAR,"%d", direct_trade(current_user, trader, stock_name, atoi(price), 2));
+                            strcpy(response, "Valid amount (");
+                            strcat(response, amount);
+                            strcat(response, ")\nInput amount: ");
+                            if (atoi(amount) == 0) {
+                                char str[MAX_CHAR] = "Please choose stock to sell:";
+                                snprintf(trader_id, MAX_CHAR,"%d", current_user->id);
+                                strcat(str, user_stock_list(trader_id));
+                                strcat(str, "\nName: ");
+                                sell--;
+                            }
+                            sell++;
+                        } else if (sell == 3) {
+                            if (atoi(buff) > atoi(amount)) {
+                                strcpy(response, "Invalid amount, input again:");
+                            } else {
+                                strcpy(response, "Please wait...");
+                            }
+                        }
+                    } else {
+                        strcpy(type, buff);
+                        if (strcmp(type,"1") == 0) {
+                            char str[MAX_CHAR] = "Please choose stock to buy:";
+                            strcat(str, user_stock_list(trader_id));
+                            strcat(str, "\nName: ");
+                            strcpy(response, str);
+                            buy++;
+                        } else {
+                            char str[MAX_CHAR] = "Please choose stock to sell:";
+                            snprintf(trader_id, MAX_CHAR,"%d", current_user->id);
+                            strcat(str, user_stock_list(trader_id));
+                            strcat(str, "\nName: ");
+                            strcpy(response, str);
+                            sell++;
+                        }
+                    }
+                }
                 break;
             case 5:
                 log_out(username);
@@ -85,9 +170,10 @@ void *client_handler(void *arg){
                 strcpy(username, "");
                 strcpy(password, "");
                 flag = 1;
-                send(clientfd, response, strlen(response), 0);
                 break;
         } 
+        
+        send(clientfd, response, strlen(response), 0);
         memset(response, 0, strlen(response));
     }
 }
@@ -138,3 +224,4 @@ int create_server(int argc, char **argv) {
 int main(int argc, char **argv) {
     create_server(argc, argv);
 }
+

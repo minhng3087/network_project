@@ -11,28 +11,82 @@ void send_request(int sockfd, char sendline[BUFFER], char recvline[BUFFER]) {
         recvline[strlen(recvline) - 1] = 0;
 }
 
+int direct_transaction(int sockfd){
+    char sendline[BUFFER], recvline[BUFFER];
+    printf("_________________Giao dịch trực tiếp__________________\n");
+    int n = recv(sockfd, recvline, BUFFER, 0);
+    recvline[n] = '\0';
+    if (recvline[strlen(recvline) - 1] == '\n')
+        recvline[strlen(recvline) - 1] = 0;
+    printf("%s\n", recvline);
+    while(1){ 
+        __fpurge(stdin);
+        send_request(sockfd, sendline, recvline);
+        printf("%s\n", recvline);
+    }
+    return 0;
+}
+
+int board(int sockfd) {
+    char sendline[BUFFER], recvline[BUFFER];
+    printf("_________________Bảng điện__________________\n");
+    int n = recv(sockfd, recvline, BUFFER, 0);
+    recvline[n] = '\0';
+    if (recvline[strlen(recvline) - 1] == '\n')
+        recvline[strlen(recvline) - 1] = 0;
+    printf("%s\n", recvline);
+    while(1){ 
+        __fpurge(stdin);
+        send_request(sockfd, sendline, recvline);
+        printf("%s\n", recvline);
+    }
+    return 0;
+}
+
+int order(int sockfd){
+    char sendline[BUFFER], recvline[BUFFER];
+    printf("_________________Đặt lệnh__________________\n");
+    int n = recv(sockfd, recvline, BUFFER, 0);
+    recvline[n] = '\0';
+    if (recvline[strlen(recvline) - 1] == '\n')
+        recvline[strlen(recvline) - 1] = 0;
+    printf("%s\n", recvline);
+    while(1){ 
+        __fpurge(stdin);
+        send_request(sockfd, sendline, recvline);
+        printf("%s\n", recvline);
+    }
+    return 0;
+}
+
 int program_main(int sockfd) {
     char choice_main[2], recvline[BUFFER];
+    int n;
     while (1) {
         menu_main();
         __fpurge(stdin);
         fgets(choice_main, 2, stdin);
         int check = choice_main[0] - '0';
         send(sockfd, choice_main, strlen(choice_main), 0);
-        
-        int n = recv(sockfd, recvline, BUFFER, 0);
-        recvline[n] = '\0';
-        if (recvline[strlen(recvline) - 1] == '\n')
-            recvline[strlen(recvline) - 1] = 0;
-        printf("%s\n", recvline);
-        
+
         switch(check) {
             case 1:
+                board(sockfd);
+                return 1;
             case 2:
+                order(sockfd);
+                return 1;
             case 3:
+                direct_transaction(sockfd);
+                return 1;
             case 4:
                 return 1;
             case 5: 
+                n = recv(sockfd, recvline, BUFFER, 0);
+                recvline[n] = '\0';
+                if (recvline[strlen(recvline) - 1] == '\n')
+                    recvline[strlen(recvline) - 1] = 0;
+                printf("%s\n", recvline);
                 return 0;
         }
     }
