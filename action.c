@@ -80,9 +80,9 @@ int check_pass(l_user *account, char password[MAX_CHAR]) {
 
 int sign_in(char username[MAX_CHAR], char password[MAX_CHAR]) {
     l_user *tmp = get_account(username);
-    if(tmp) {
-        current_user = tmp;
-    }
+    // if(tmp) {
+    //     current_user = tmp;
+    // }
     if(check_pass(tmp, password) == TRUE) {
         tmp->status = TRUE;
         tmp->pass_incorrect = 0;
@@ -121,10 +121,12 @@ l_user* trade_user(char id[MAX_CHAR]) {
     l_user *tmp = head_user;
     char user_id[MAX_CHAR];
     while (tmp != NULL) {
-        snprintf(user_id, MAX_CHAR,"%d", tmp->id);
-        if (strcmp(user_id, id) == 0) {
-            return tmp;
-        } 
+        if (tmp->is_online == TRUE) {
+            snprintf(user_id, MAX_CHAR,"%d", tmp->id);
+            if (strcmp(user_id, id) == 0) {
+                return tmp;
+            } 
+        }
         tmp = tmp->next;
     }
     return NULL;
@@ -185,7 +187,8 @@ int direct_trade(l_user *current_user, l_user *trader,char stock_name[MAX_CHAR],
     return FALSE;
 }
 
-char* online_users(l_user *current_user) {
+char* online_users(char username[MAX_CHAR]) {
+    current_user = get_account(username);
     l_user *tmp = head_user;
     char *str = malloc(sizeof(char));
     char user_id[MAX_CHAR];

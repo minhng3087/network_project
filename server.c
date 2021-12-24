@@ -69,6 +69,7 @@ void *client_handler(void *arg){
                 int status = sign_in(username, password);
                 if(status == 1) {
                     strcpy(response, LOGIN_SUCCESS);
+                    // current_user = get_account(username);
                     flag++;
                 }else if(status == 3) {
                     strcpy(response, PASSWORD_WRONG);
@@ -80,9 +81,9 @@ void *client_handler(void *arg){
                 send(clientfd, response, strlen(response), 0);
                 break;  
             case 3: 
-                CHOOSE_USER: if(check == 0) {
+                if(check == 0) {
                     char str[MAX_CHAR] = "Please choose user you want to transaction: ";
-                    strcat(str, online_users(current_user));
+                    strcat(str, online_users(username));
                     strcpy(response, str);
                     check++;
                 }else if (check == 1) {
@@ -94,7 +95,6 @@ void *client_handler(void *arg){
                     } else {
                         strcpy(response, "User not online, please try again");
                         check--;
-                        goto CHOOSE_USER;
                     }
                 }else if (check == 2) {
                     if (strcmp(type,"1") == 0) {
