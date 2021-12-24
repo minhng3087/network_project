@@ -15,6 +15,23 @@
 
 extern l_user *head_user;
 
+void manage_profile_account(int clientfd, char username[MAX_CHAR]) {
+    l_user *user =  get_account(username);
+    char target[BUFFER_SIZE];
+    char response[BUFFER_SIZE];
+    l_stock *stock = user->stock;
+    strcpy(response, "ID NAME BLANCE STATUS\n");
+    sprintf(target, "%d %s %d %d\n", user->id, user->username, user->balance, user->status);
+    strcat(response, target);
+    strcat(response, "List stock\n");
+    while(stock != NULL) {
+        sprintf(target, "%s %d\n", stock->name, stock->price);
+        strcat(response, target);
+        stock = stock->next;
+    }
+    send(clientfd, response, strlen(response), 0);
+}
+
 void *client_handler(void *arg){
     int clientfd, n, flag = 1, check = 0, buy = 0, sell = 0;
     char buff[BUFFER_SIZE], response[BUFFER_SIZE], username[MAX_CHAR], password[MAX_CHAR];
@@ -33,6 +50,8 @@ void *client_handler(void *arg){
         }
         if (strcmp(buff,"5") == 0) {
             flag = 5;
+        }else if (strcmp(buff,"4") == 0) {
+            flag = 4;
         }
         switch(flag) {
             case 1:
@@ -43,6 +62,7 @@ void *client_handler(void *arg){
                 }else {
                     strcpy(response, USERNAME_WRONG);
                 }
+                send(clientfd, response, strlen(response), 0);
                 break;
             case 2:
                 strcpy(password, buff);
@@ -58,7 +78,7 @@ void *client_handler(void *arg){
                     flag = 1;
                 }
                 break;  
-            case 4: 
+            case 3: 
                 CHOOSE_USER: if(check == 0) {
                     char str[MAX_CHAR] = "Please choose user you want to transaction: ";
                     strcat(str, online_users(current_user));
@@ -162,6 +182,10 @@ void *client_handler(void *arg){
                         }
                     }
                 }
+                send(clientfd, response, strlen(response), 0);
+                break;   
+            case 4:
+                manage_profile_account(clientfd, username);
                 break;
             case 5:
                 log_out(username);
@@ -170,9 +194,9 @@ void *client_handler(void *arg){
                 strcpy(username, "");
                 strcpy(password, "");
                 flag = 1;
+                send(clientfd, response, strlen(response), 0);
                 break;
-        } 
-        
+        }         
         send(clientfd, response, strlen(response), 0);
         memset(response, 0, strlen(response));
     }
