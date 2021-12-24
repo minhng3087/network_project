@@ -46,7 +46,7 @@ void *client_handler(void *arg){
             buff[strlen(buff) - 1] = 0;
         printf("String received from client: %s\n", buff);
         if (strcmp(buff,"3") == 0) {
-            flag = 4;
+            flag = 3;
         }
         if (strcmp(buff,"5") == 0) {
             flag = 5;
@@ -77,6 +77,7 @@ void *client_handler(void *arg){
                     strcpy(response, ACCOUNT_BLOCK);
                     flag = 1;
                 }
+                send(clientfd, response, strlen(response), 0);
                 break;  
             case 3: 
                 CHOOSE_USER: if(check == 0) {
@@ -197,7 +198,7 @@ void *client_handler(void *arg){
                 send(clientfd, response, strlen(response), 0);
                 break;
         }         
-        send(clientfd, response, strlen(response), 0);
+        // send(clientfd, response, strlen(response), 0);
         memset(response, 0, strlen(response));
     }
 }
