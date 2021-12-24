@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "define.h"
+#include <math.h>
 
 typedef struct stock{
     char name[MAX_CHAR];
@@ -30,8 +31,13 @@ void add_user(l_user **head, l_user *node);
 void print_list();
 void error(char *s);
 
+l_user *current_user;
 l_user *get_account(char username[MAX_CHAR]);
 int sign_in(char username[MAX_CHAR], char password[MAX_CHAR]);
 int check_pass(l_user *account, char password[MAX_CHAR]);
 int has_account(char username[MAX_CHAR]);
 void log_out(char username[MAX_CHAR]);
+l_user *trade_user(char id[MAX_CHAR]);
+char* user_stock_list(char id[MAX_CHAR]);
+int direct_trade(l_user *current_user, l_user *trader, char stock_name[MAX_CHAR], int price, int type);
+char* online_users();
