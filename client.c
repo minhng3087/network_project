@@ -59,6 +59,22 @@ int order(int sockfd){
     return 0;
 }
 
+int manage_profile_account(int sockfd){
+    char sendline[BUFFER], recvline[BUFFER];
+    printf("_________________Quan ly tai khoan__________________\n");
+    int n = recv(sockfd, recvline, BUFFER, 0);
+    recvline[n] = '\0';
+    if (recvline[strlen(recvline) - 1] == '\n')
+        recvline[strlen(recvline) - 1] = 0;
+    printf("%s\n", recvline);
+    while(1){ 
+        __fpurge(stdin);
+        send_request(sockfd, sendline, recvline);
+        printf("%s\n", recvline);
+    }
+    return 0;
+}
+
 int program_main(int sockfd) {
     char choice_main[2], recvline[BUFFER];
     int n;
@@ -80,6 +96,7 @@ int program_main(int sockfd) {
                 direct_transaction(sockfd);
                 return 1;
             case 4:
+                manage_profile_account(sockfd);
                 return 1;
             case 5: 
                 n = recv(sockfd, recvline, BUFFER, 0);
