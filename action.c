@@ -53,9 +53,11 @@ void print_list() {
     l_user *tmp = head_user;
     while (tmp != NULL) {
         printf("%d %s %s %d %d\n", tmp->id, tmp->username, tmp->password, tmp->balance, tmp->status);
-        while(tmp->stock != NULL) {
-            printf("%s %d %d\n", tmp->stock->name, tmp->stock->price, tmp->stock->amount);
-            tmp->stock = tmp->stock->next;
+        l_stock *temp = (l_stock *) malloc(sizeof(l_stock));
+        temp = tmp->stock;
+        while(temp != NULL) {
+            printf("%s %d %d\n", temp->name, temp->price, temp->amount);
+            temp = temp->next;
         }
         tmp = tmp->next;
     }
@@ -78,10 +80,13 @@ int check_pass(l_user *account, char password[MAX_CHAR]) {
 
 int sign_in(char username[MAX_CHAR], char password[MAX_CHAR]) {
     l_user *tmp = get_account(username);
-    
+    if(tmp) {
+        current_user = tmp;
+    }
     if(check_pass(tmp, password) == TRUE) {
         tmp->status = TRUE;
         tmp->pass_incorrect = 0;
+        tmp->is_online = TRUE;
         // login success
         return 1;
     } else {
@@ -110,4 +115,89 @@ int has_account(char username[MAX_CHAR]) {
 void log_out(char username[MAX_CHAR]) {
     l_user *tmp = get_account(username);
     tmp->is_online = FALSE;
+}
+
+l_user* trade_user(char id[MAX_CHAR]) {
+    l_user *tmp = head_user;
+    char user_id[MAX_CHAR];
+    while (tmp != NULL) {
+        snprintf(user_id, MAX_CHAR,"%d", tmp->id);
+        if (strcmp(user_id, id) == 0) {
+            return tmp;
+        } 
+        tmp = tmp->next;
+    }
+    return NULL;
+}
+
+char* user_stock_list(char id[MAX_CHAR]) {
+    l_user *tmp = head_user;
+    char user_id[MAX_CHAR], amount[MAX_CHAR];
+    char* str = malloc(sizeof(char));
+    while (tmp != NULL) {
+        snprintf(user_id, MAX_CHAR,"%d", tmp->id);
+        if (strcmp(user_id, id) == 0) {
+            l_stock *temp = (l_stock *) malloc(sizeof(l_stock));
+            temp = tmp->stock;
+            while(temp != NULL) {
+                strcat(str, "\n");
+                strcat(str, temp->name);
+                strcat(str, ": ");
+                snprintf(amount, MAX_CHAR,"%d", temp->amount);
+                strcat(str, amount);
+                temp = temp->next;
+            }
+        }         
+        tmp = tmp->next;
+    }
+    return str;
+}
+
+int direct_trade(l_user *current_user, l_user *trader,char stock_name[MAX_CHAR], int price, int type) {
+    l_stock *temp = (l_stock *) malloc(sizeof(l_stock));
+    if(type == 1) { //mua
+        temp = trader->stock;
+        while(temp != NULL) {
+            if (strcmp(stock_name, temp->name) == 0) {
+                if (price > 0) {
+                    int amount = round(current_user->balance/price);
+                    if (amount > temp->amount) {
+                        return temp->amount;
+                    }
+                    return amount;
+                }
+                return TRUE;
+            }
+            temp = temp->next;
+        }
+    } else { //bán
+        temp = current_user->stock;
+        while(temp != NULL) {
+            if (strcmp(stock_name, temp->name) == 0) {
+                if (price > 0) {
+                    return temp->amount;
+                }
+                return TRUE;
+            }
+            temp = temp->next;
+        }
+    }
+    return FALSE;
+}
+
+char* online_users(l_user *current_user) {
+    l_user *tmp = head_user;
+    char *str = malloc(sizeof(char));
+    char user_id[MAX_CHAR];
+    while (tmp != NULL) {
+        if (tmp->is_online == TRUE && tmp != current_user) {
+            snprintf(user_id, MAX_CHAR,"%d", tmp->id);
+            strcat(str, "\n");
+            strcat(str, user_id);
+            strcat(str, ". ");
+            strcat(str, tmp->username);
+        }
+        tmp = tmp->next;
+    }
+    return str;
 }
