@@ -68,7 +68,7 @@ void *client_handler(void *arg){
                     strcpy(trader_id, buff);
                     trader = trade_user(trader_id);
                     if(trader) {
-                        strcpy(response, START_TRADER);
+                        strcpy(response, "Please choose action(1.Buy, 2.Sell): ");
                         check++;
                     } else {
                         strcpy(response, "User not online, please try again");
