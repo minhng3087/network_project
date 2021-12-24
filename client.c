@@ -67,11 +67,6 @@ int manage_profile_account(int sockfd){
     if (recvline[strlen(recvline) - 1] == '\n')
         recvline[strlen(recvline) - 1] = 0;
     printf("%s\n", recvline);
-    while(1){ 
-        __fpurge(stdin);
-        send_request(sockfd, sendline, recvline);
-        printf("%s\n", recvline);
-    }
     return 0;
 }
 
