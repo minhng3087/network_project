@@ -60,7 +60,7 @@ int order(int sockfd){
 }
 
 int manage_profile_account(int sockfd){
-    char sendline[BUFFER], recvline[BUFFER];
+    char recvline[BUFFER];
     printf("_________________Quan ly tai khoan__________________\n");
     int n = recv(sockfd, recvline, BUFFER, 0);
     recvline[n] = '\0';
@@ -78,22 +78,25 @@ int program_main(int sockfd) {
         __fpurge(stdin);
         fgets(choice_main, 2, stdin);
         int check = choice_main[0] - '0';
-        send(sockfd, choice_main, strlen(choice_main), 0);
 
         switch(check) {
             case 1:
+                send(sockfd, "board", strlen("board"), 0);
                 board(sockfd);
                 return 1;
             case 2:
                 order(sockfd);
                 return 1;
             case 3:
+                send(sockfd, "direct", strlen("direct"), 0);
                 direct_transaction(sockfd);
                 return 1;
             case 4:
+                send(sockfd, "manage", strlen("manage"), 0);
                 manage_profile_account(sockfd);
                 return 1;
             case 5: 
+                send(sockfd, "logout", strlen("logout"), 0);
                 n = recv(sockfd, recvline, BUFFER, 0);
                 recvline[n] = '\0';
                 if (recvline[strlen(recvline) - 1] == '\n')

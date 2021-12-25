@@ -52,7 +52,7 @@ void add_stock(l_stock **head, l_stock *node) {
 void print_list() {
     l_user *tmp = head_user;
     while (tmp != NULL) {
-        printf("%d %s %s %d %d\n", tmp->id, tmp->username, tmp->password, tmp->balance, tmp->status);
+        printf("%d %d %s %s %d %d\n", tmp->clientfd, tmp->id, tmp->username, tmp->password, tmp->balance, tmp->status);
         l_stock *temp = (l_stock *) malloc(sizeof(l_stock));
         temp = tmp->stock;
         while(temp != NULL) {
@@ -78,15 +78,13 @@ int check_pass(l_user *account, char password[MAX_CHAR]) {
     return strcmp(account->password, password) == 0 ? TRUE : FALSE;
 }
 
-int sign_in(char username[MAX_CHAR], char password[MAX_CHAR]) {
+int sign_in(char username[MAX_CHAR], char password[MAX_CHAR], int clientfd) {
     l_user *tmp = get_account(username);
-    // if(tmp) {
-    //     current_user = tmp;
-    // }
     if(check_pass(tmp, password) == TRUE) {
         tmp->status = TRUE;
         tmp->pass_incorrect = 0;
         tmp->is_online = TRUE;
+        tmp->clientfd = clientfd;
         // login success
         return 1;
     } else {
@@ -115,6 +113,7 @@ int has_account(char username[MAX_CHAR]) {
 void log_out(char username[MAX_CHAR]) {
     l_user *tmp = get_account(username);
     tmp->is_online = FALSE;
+    tmp->clientfd = FALSE;
 }
 
 l_user* trade_user(char id[MAX_CHAR]) {
