@@ -1,6 +1,9 @@
 #include "action.h"
 
 extern l_user *head_user;
+extern l_oversold *head_oversold;
+extern l_overbought *head_overbought;
+extern l_stock *head_stock;
 
 void error(char *s){
     perror(s);
@@ -202,4 +205,186 @@ char* online_users(char username[MAX_CHAR]) {
         tmp = tmp->next;
     }
     return str;
+}
+
+l_oversold *create_oversold(char username[MAX_CHAR], char name_stock[MAX_CHAR], int price, int amount) {
+    l_oversold *temp = (l_oversold *) malloc(sizeof(l_oversold));
+    strcpy(temp->username, username);
+    strcpy(temp->name_stock, name_stock);
+    temp->price = price;
+    temp->amount = amount;
+    temp->next = NULL;
+    return temp;
+}
+
+void add_oversold(l_oversold **head, l_oversold *node) {
+    if( *head == NULL) {
+        *head = node;
+    } else {
+        l_oversold *tmp = *head;
+        while (tmp->next != NULL) tmp = tmp->next;
+        tmp->next = node;
+    }
+}
+
+l_overbought *create_overbought(char username[MAX_CHAR], char name_stock[MAX_CHAR], int price, int amount) {
+    l_overbought *temp = (l_overbought *) malloc(sizeof(l_overbought));
+    strcpy(temp->username, username);
+    strcpy(temp->name_stock, name_stock);
+    temp->price = price;
+    temp->amount = amount;
+    temp->next = NULL;
+    return temp;
+}
+
+void add_overbought(l_overbought **head, l_overbought *node) {
+    if( *head == NULL) {
+        *head = node;
+    } else {
+        l_overbought *tmp = *head;
+        while (tmp->next != NULL) tmp = tmp->next;
+        tmp->next = node;
+    }
+}
+
+// check stock exist in oversold.txt and price < price of stock 
+int has_stock_in_oversold(char name_stock[MAX_CHAR]) { 
+    l_oversold *tmp = head_oversold;
+    while (tmp != NULL) {
+        if (strcmp(tmp->name_stock, name_stock) == 0) {
+            return TRUE;
+        } 
+        tmp = tmp->next;
+    }
+    return FALSE;
+}
+
+void print_list_oversold() {
+    l_oversold *tmp = head_oversold;
+    while (tmp != NULL) {
+        printf("%s %s %d %d\n", tmp->username, tmp->name_stock, tmp->price, tmp->amount);
+        tmp = tmp->next;
+    }
+}
+
+void delete_list_stock(l_stock** head_ref){
+   /* deref head_ref to get the real head */
+   l_stock* current = *head_ref;
+   l_stock* next;
+ 
+   while (current != NULL)
+   {
+       next = current->next;
+       free(current);
+       current = next;
+   }
+   
+   /* deref head_ref to affect the real head back
+      in the caller. */
+   *head_ref = NULL;
+}
+
+void delete_node_stock(l_stock *head, l_stock *n){
+    // When node to be deleted is 
+    // head node
+    if(head == n){
+        // Copy the data of next node to head
+        head->price = head->next->price;
+        head->amount = head->next->amount;
+        strcpy(head->name, head->next->name);
+        // store address of next node
+        n = head->next;
+        // Remove the link of next node
+        head->next = head->next->next;
+        // free memory
+        free(n);
+        return;
+    }
+    // When not first node, follow the 
+    // normal deletion process
+    // Find the previous node
+    l_stock *prev = head;
+    while(prev->next != NULL && 
+          prev->next != n)
+        prev = prev->next;
+    // Check if node really exists in 
+    // Linked List
+    if(prev->next == NULL){
+        printf("Given node is not present in Linked List");
+        return;
+    }
+    // Remove node from Linked List
+    prev->next = prev->next->next;
+    // Free memory
+    free(n);
+    return; 
+}
+
+int delete_all_by_key(int key)
+{
+    int totalDeleted = 0;
+    l_oversold *prev, *cur;
+
+    /* Check if head node contains key */
+    while (head_oversold != NULL && head_oversold->key == key)
+    {
+        // Get reference of head node
+        l_stock *tmp = create_stock(head_oversold->name_stock, head_oversold->amount, head_oversold->price);
+        add_stock(&head_stock, tmp);
+        prev = head_oversold;
+
+        // Adjust head node link
+        head_oversold = head_oversold->next;
+
+        // Delete prev since it contains reference to head node
+        free(prev);
+
+        totalDeleted++;
+    }
+
+    prev = NULL;
+    cur  = head_oversold;
+
+    /* For each node in the list */
+    while (cur != NULL)
+    {
+        // Current node contains key
+        if (cur->key == key)
+        {
+            // Adjust links for previous node
+            l_stock *tmp = create_stock(cur->name_stock, cur->amount, cur->price);
+            add_stock(&head_stock, tmp);
+         
+            if (prev != NULL) 
+            {
+                prev->next = cur->next;
+            }
+
+            // Delete current node
+            free(cur);
+
+            cur = prev->next;
+
+            totalDeleted++;
+        } 
+        else
+        {
+            prev = cur;
+            cur = cur->next;
+        }        
+
+    }
+
+    return totalDeleted;
+}
+
+l_stock* search_stock_of_user(l_user **head_ref, char name_stock[MAX_CHAR], int price) {
+    l_stock* temp = (*head_ref)->stock;
+    while(temp != NULL) {
+        if(strcmp(temp->name, name_stock) == 0 && temp->price == price) {
+            return temp;
+        }
+        temp = temp->next;
+    }
+    return NULL;
 }

@@ -16,3 +16,10 @@ void menu_main() {
     printf("5. Đăng xuất\n");
     printf("--------------------------------\n");
 }
+
+void menu_order() {
+    printf("--------------------------------\n");
+    printf("1. Mua\n");
+    printf("2. Ban\n");
+    printf("--------------------------------\n");
+}

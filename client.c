@@ -45,7 +45,6 @@ int board(int sockfd) {
 
 int order(int sockfd){
     char sendline[BUFFER], recvline[BUFFER];
-    printf("_________________Đặt lệnh__________________\n");
     int n = recv(sockfd, recvline, BUFFER, 0);
     recvline[n] = '\0';
     if (recvline[strlen(recvline) - 1] == '\n')
@@ -54,9 +53,12 @@ int order(int sockfd){
     while(1){ 
         __fpurge(stdin);
         send_request(sockfd, sendline, recvline);
+        if(strcmp(recvline, "Bye") == 0){
+            break;
+        }
         printf("%s\n", recvline);
     }
-    return 0;
+    return 1;
 }
 
 int manage_profile_account(int sockfd){
@@ -72,7 +74,7 @@ int manage_profile_account(int sockfd){
 
 int program_main(int sockfd) {
     char choice_main[2], recvline[BUFFER];
-    int n;
+    int n, choice_order;
     while (1) {
         menu_main();
         __fpurge(stdin);
@@ -85,6 +87,18 @@ int program_main(int sockfd) {
                 board(sockfd);
                 return 1;
             case 2:
+                send(sockfd, "order", strlen("order"), 0);
+                printf("_________________Đặt lệnh__________________\n");
+                menu_order();
+                scanf("%d", &choice_order);
+                switch(choice_order) {
+                    case 1:
+                        send(sockfd, "B", strlen("B"), 0);
+                        break;
+                    case 2:
+                        send(sockfd, "S", strlen("S"), 0);
+                        break;
+                }
                 order(sockfd);
                 return 1;
             case 3:
