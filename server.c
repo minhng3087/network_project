@@ -16,11 +16,16 @@
 extern l_user *head_user;
 extern l_stock *head_stock;
 extern l_oversold *head_oversold;
+extern l_overbought *head_overbought;
 
 int buy_flag = 0;
 int flag_delete = FALSE;
 int temp_balance = 0;
- 
+int temp_amount = 0;
+int sell_flag = 0;
+int count_same = 0;
+
+
 void manage_profile_account(int clientfd, char username[MAX_CHAR]) {
     l_user *user =  get_account(username);
     char target[BUFFER_SIZE];
@@ -58,6 +63,7 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
             break;
         case 3:
             amount = atoi(request);
+            int amount2 = amount;
             l_user *info = get_account(username); //current_user
             if(info != NULL && info->balance < amount * price) {
                 strcpy(response, "Balance not enough");
@@ -66,12 +72,9 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
             }else {
                 // case stock not exist in overbought.txt and price < price of stock => save to file overbought.txt
                 if(has_stock_in_oversold(name_stock) == FALSE) {
-                    // l_stock *tmp = create_stock(name_stock, amount, price);
-                    // add_stock(&head_stock, tmp);
-                    write_node_to_overbought(username, name_stock, price, amount);
-                    strcpy(response, "Order Match Success!!!\n");
-                    strcat(response, "Input name stock");
-                    buy_flag = 1;
+                    write_node_to_overfile("file/overbought.txt", username, name_stock, price, amount);
+                    strcpy(response, "Order Match Success (1) !!!\n");
+                    strcat(response, "Press q to quit\n");
                 }
                 // case stock exist in overbought.txt
                 else {
@@ -82,6 +85,7 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
                             l_stock *stock_sell =  search_stock_of_user(&seller, name_stock, tmp->price);
                             l_stock *search_stock = search_stock_of_user(&info, name_stock, tmp->price);
                             if(tmp->amount <= amount) {
+                                temp_amount = tmp->amount;
                                 tmp->key = TRUE;
                                 temp_balance += tmp->price * tmp->amount;
                                 seller->balance += tmp->price * tmp->amount;
@@ -93,12 +97,14 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
                                     search_stock->amount += tmp->amount;
                                 }
                             }else if(tmp->amount > amount) {
+                                temp_amount = tmp->amount;
                                 tmp->amount = abs(tmp->amount - amount);
                                 temp_balance += tmp->price * amount;
                                 seller->balance += tmp->price * amount;
                                 // update amount stock of seller
                                 stock_sell->amount -= amount;
                                 // L15 100 5 => L15 100 4 -> add L15 100 1 to LL
+                                
                                 l_stock* temp = create_stock(tmp->name_stock, amount, tmp->price);
                                 add_stock(&head_stock, temp);
 
@@ -112,12 +118,17 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
                             if(stock_sell->amount == 0) {
                                 delete_node_stock(seller->stock,stock_sell);
                             }
-                            amount -= tmp->amount;
+                            amount -= temp_amount;
+                            count_same++;
                         }
                         tmp = tmp->next;
                     }
+                    
                     if(amount > 0) {
-                        write_node_to_overbought(username, name_stock, price, amount);
+                        write_node_to_overfile("file/overbought.txt", username, name_stock, price, amount);
+                    }
+                    if(count_same == 1) {
+                       append_one_stock_to_order_match(name_stock, price, amount2);
                     }
                     if(flag_delete == TRUE) {
                         delete_all_by_key(TRUE);
@@ -128,8 +139,11 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
                     // add new stock to buyer 
                     write_file("file/users.txt");
                     strcpy(response, "Order Match Success!!!\n");
-                    strcat(response, "Input name stock");
+                    strcat(response, "Press q to quit");
+                    // reset
+                    count_same = 0;
                     buy_flag = 1;
+                    flag_delete = FALSE;
                 }
             }
             break;
@@ -137,16 +151,124 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
     send(clientfd, response, strlen(response), 0);
 }
 
+void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]) {
+    char name_stock[MAX_CHAR], response[BUFFER_SIZE];
+    int price, amount;
+     switch(sell_flag) {
+        case 0:
+            strcpy(response, "\nInput name stock");
+            sell_flag++;
+            break;
+        case 1:
+            strcpy(name_stock, request);
+            strcpy(response, "Input price");
+            sell_flag++;
+            break;
+        case 2:
+            price = atoi(request);
+            strcpy(response, "Input amount");
+            sell_flag++;
+            break;
+        case 3: 
+            amount = atoi(request);
+            int amount2 = amount;
+            l_user *info = get_account(username); //current_user
+            if(amount > get_amount_from_stock(&info, name_stock)) {
+                strcpy(response, "Amount not enough");
+                strcpy(response, "Input amount again");
+                sell_flag = 3;
+            }else {
+                if(has_stock_in_overbought(name_stock) == FALSE) {
+                    write_node_to_overfile("file/oversold.txt", username, name_stock, price, amount);
+                    strcpy(response, "Order Match Success!!!\n");
+                    strcat(response, "Press q to quit");
+                }else {
+                    l_overbought *tmp = head_overbought;
+                    while(tmp != NULL) {
+                        if (strcmp(tmp->name_stock, name_stock) == 0 && price <= tmp->price && strcmp(tmp->username, info->username) != 0) {
+                            l_user* buyer = get_account(tmp->username);
+                            l_stock *stock_buy =  search_stock_of_user(&buyer, name_stock, tmp->price);
+                            l_stock *search_stock = search_stock_of_user(&info, name_stock, tmp->price);
+                            if(tmp->amount <= amount) {
+                                temp_amount = tmp->amount;
+                                tmp->key = TRUE;
+                                temp_balance += tmp->price * tmp->amount;
+                                buyer->balance -= tmp->price * tmp->amount;
+                                stock_buy->amount += tmp->amount;
+                                flag_delete = TRUE;
+                                if(search_stock == NULL) {
+                                    add_stock(&(info->stock), create_stock(name_stock, tmp->amount, tmp->price));
+                                }else {
+                                    search_stock->amount += tmp->amount;
+                                }
+                            }else if(tmp->amount > amount) {
+                                temp_amount = tmp->amount;
+                                tmp->amount = abs(tmp->amount - amount);
+                                temp_balance += tmp->price * amount;
+                                buyer->balance -= tmp->price * amount;
+                                // update amount stock of buyer
+                                stock_buy->amount += amount;
+                                // L15 100 5 => L15 100 4 -> add L15 100 1 to LL
+                                
+                                l_stock* temp = create_stock(tmp->name_stock, amount, tmp->price);
+                                add_stock(&head_stock, temp);
+
+                                if(search_stock == NULL) {
+                                    add_stock(&(info->stock), temp);
+                                }else {
+                                    search_stock->amount += amount;
+                                }
+                            }
+                            
+                            if(stock_buy->amount == 0) {
+                                delete_node_stock(buyer->stock,stock_buy);
+                            }
+                            amount -= temp_amount;
+                            count_same++;
+                        }
+                        tmp = tmp->next;
+                    }
+                    
+                    if(amount > 0) {
+                        write_node_to_overfile("file/oversold.txt", username, name_stock, price, amount);
+                    }
+                    if(count_same == 1) {
+                       append_one_stock_to_order_match(name_stock, price, amount2);
+                    }
+                    if(flag_delete == TRUE) {
+                        delete_all_by_key_overbought(TRUE);
+                        append_file_order_match();
+                    }
+                    write_file_overbought();
+                    info->balance += temp_balance;
+                    // add new stock to buyer 
+                    write_file("file/users.txt");
+                    strcpy(response, "Order Match Success!!!\n");
+                    strcat(response, "Press q to quit");
+                    // reset
+                    count_same = 0;
+                    sell_flag = 1;
+                    flag_delete = FALSE; 
+                }
+            }
+
+    }
+    send(clientfd, response, strlen(response), 0);
+}
+
+
 void order(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR], int check_action) {
     switch(check_action) {
         case 1:
             buy_stock(clientfd, request, username);
             break;
         case 2: 
+            sell_stock(clientfd, request, username);
             break;
         case 3:
             send(clientfd, "Bye", strlen("Bye"), 0);
             buy_flag = 0;
+            sell_flag = 0;
             break;
     }
 }
@@ -320,7 +442,12 @@ void *client_handler(void *arg){
                         if (strcmp(buff, "B") == 0) {
                             check_action = 1;
                         }
-                        else if (strcmp(buff, "S") == 0) check_action = 2;
+                        else if (strcmp(buff, "S") == 0)  {
+                            strcpy(response, get_list_stock_of_user(username));
+                            // send to client list stock to sell
+                            send(clientfd, response, strlen(response), 0);
+                            check_action = 2;
+                        }
                         else if (strcmp(buff, "q") == 0) {
                             check_action = 3;
                             flag_main = 0;

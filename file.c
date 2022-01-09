@@ -134,7 +134,7 @@ void write_file_oversold() {
 }
 
 void append_file_order_match() {
-   FILE *fo = fopen("file/order_matching.txt", "w");
+   FILE *fo = fopen("file/order_matching.txt", "a");
    l_stock *tmp = head_stock;
    while (tmp != NULL) {
        fprintf(fo, "%s %d %d\n", tmp->name, tmp->price, tmp->amount);
@@ -144,15 +144,22 @@ void append_file_order_match() {
    fclose(fo);
 }
 
-void write_node_to_overbought(char username[MAX_CHAR], char name_stock[MAX_CHAR], int price, int amount) {
-    FILE *fo = fopen("file/overbought.txt", "a");
+void write_node_to_overfile(char *filename, char username[MAX_CHAR], char name_stock[MAX_CHAR], int price, int amount) {
+    FILE *fo = fopen(filename, "a");
    if (fo == NULL) {
-       printf("Could not open file %s\n","overbought.txt");
+       printf("Could not open file %s\n",filename);
        return;
    }
   
    fprintf(fo, "%s %s %d %d\n", username, name_stock, price, amount);
    fclose(fo);
+}
+
+void append_one_stock_to_order_match(char name_stock[MAX_CHAR], int price, int amount) {
+    FILE *fo = fopen("file/order_matching.txt", "a");
+   fprintf(fo, "%s %d %d\n", name_stock, price, amount);
+   fclose(fo);
+
 }
 
 

@@ -34,6 +34,7 @@ typedef struct oversold{
 }l_oversold;
 
 typedef struct overbought{
+    int key;
     char username[MAX_CHAR];
     char name_stock[MAX_CHAR];
     int price;
@@ -59,9 +60,10 @@ l_user *trade_user(char id[MAX_CHAR]);
 char* user_stock_list(char id[MAX_CHAR]);
 int direct_trade(l_user *current_user, l_user *trader, char stock_name[MAX_CHAR], int price, int type);
 char* online_users(char username[MAX_CHAR]);
+char* get_list_stock_of_user(char username[MAX_CHAR]);
 
 // order 
-
+// buy stock
 l_oversold *create_oversold(char username[MAX_CHAR], char name_stock[MAX_CHAR], int price, int amount);
 void add_oversold(l_oversold **head, l_oversold *node);
 l_overbought *create_overbought(char username[MAX_CHAR], char name_stock[MAX_CHAR], int price, int amount);
@@ -74,3 +76,11 @@ int delete_all_by_key(int key);
 
 l_stock* search_stock_of_user(l_user **head_ref, char name_stock[MAX_CHAR], int price);
 void delete_node_stock(l_stock *head, l_stock *n);
+
+// end buy_stock
+
+// sell stock
+int has_stock_in_overbought(char name_stock[MAX_CHAR]);
+int get_amount_from_stock(l_user **head_ref, char name_stock[MAX_CHAR]);
+int delete_all_by_key_overbought(int key);
+// end sell stock
