@@ -6,11 +6,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
+#include <pthread.h>
 #include <string.h>
 #include <stdio_ext.h>
 #include <sys/types.h>
 #include "define.h"
 #include "action.h"
 
-int login(int sockfd);
-int program_main(int sockfd);
+void login();
+int program_main();

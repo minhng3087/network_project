@@ -1,8 +1,10 @@
-
 #include "client.h"
 #include "menu.h"
 
-void send_request(int sockfd, char sendline[BUFFER], char recvline[BUFFER]) {
+int sockfd = 0;
+char sendline[BUFFER] = {};
+
+void send_request(char sendline[BUFFER], char recvline[BUFFER]) {
     fgets(sendline, BUFFER, stdin);
     send(sockfd, sendline, strlen(sendline), 0);
     int n = recv(sockfd, recvline, BUFFER, 0);
@@ -10,58 +12,95 @@ void send_request(int sockfd, char sendline[BUFFER], char recvline[BUFFER]) {
     if (recvline[strlen(recvline) - 1] == '\n')
         recvline[strlen(recvline) - 1] = 0;
 }
+void str_overwrite_stdout() {
+  printf("%s", "> ");
+  fflush(stdout);
+}
 
-int direct_transaction(int sockfd){
-    char sendline[BUFFER], recvline[BUFFER];
+void add_token(char str[BUFFER], char header[BUFFER]) {
+    strcat(str, "|");
+    strcat(str, header);
+}
+
+void recv_msg_handler() {
+	char message[BUFFER] = {};
+    while (1) {
+        int receive = recv(sockfd, message, BUFFER, 0);
+        if (receive > 0) {
+            printf("%s", message);
+            str_overwrite_stdout();
+        } else if (receive == 0) {
+            printf("connection lost!");
+            break;
+        } else {
+            // -1
+        }
+        memset(message, 0, sizeof(message));
+    }
+}
+
+int direct_transaction(){
     printf("_________________Giao dịch trực tiếp__________________\n");
-    int n = recv(sockfd, recvline, BUFFER, 0);
-    recvline[n] = '\0';
-    if (recvline[strlen(recvline) - 1] == '\n')
-        recvline[strlen(recvline) - 1] = 0;
-    printf("%s\n", recvline);
+    // int n = recv(sockfd, recvline, BUFFER, 0);
+    // recvline[n] = '\0';
+    // if (recvline[strlen(recvline) - 1] == '\n')
+    //     recvline[strlen(recvline) - 1] = 0;
+    // printf("%s\n", recvline);
+    
+    // send_msg_handler();
+    // recv_msg_handler();
+    // pthread_t send_msg_handler;
+    // if(pthread_create(&send_msg_handler, NULL, (void *) recv_msg_handler, NULL) != 0){
+	// 	printf("ERROR: pthread\n");
+	// 	return EXIT_FAILURE;
+	// }
+    // while(puts(strchr(sendchar, '|')) != NULL) {
+
+    // }
+    
     while(1){ 
         __fpurge(stdin);
-        send_request(sockfd, sendline, recvline);
-        printf("%s\n", recvline);
+        fgets(sendline, BUFFER, stdin);
+        send(sockfd, sendline, strlen(sendline), 0);
     }
     return 0;
 }
 
-int board(int sockfd) {
+int board() {
     char sendline[BUFFER], recvline[BUFFER];
     printf("_________________Bảng điện__________________\n");
-    int n = recv(sockfd, recvline, BUFFER, 0);
-    recvline[n] = '\0';
-    if (recvline[strlen(recvline) - 1] == '\n')
-        recvline[strlen(recvline) - 1] = 0;
-    printf("%s\n", recvline);
-    while(1){ 
-        __fpurge(stdin);
-        send_request(sockfd, sendline, recvline);
-        printf("%s\n", recvline);
-    }
+    // int n = recv(sockfd, recvline, BUFFER, 0);
+    // recvline[n] = '\0';
+    // if (recvline[strlen(recvline) - 1] == '\n')
+    //     recvline[strlen(recvline) - 1] = 0;
+    // printf("%s\n", recvline);
+    // while(1){ 
+    //     __fpurge(stdin);
+    //     send_request(sendline, recvline);
+    //     printf("%s\n", recvline);
+    // }
     return 0;
 }
 
-int order(int sockfd){
+int order(){
     char sendline[BUFFER], recvline[BUFFER];
-    int n = recv(sockfd, recvline, BUFFER, 0);
-    recvline[n] = '\0';
-    if (recvline[strlen(recvline) - 1] == '\n')
-        recvline[strlen(recvline) - 1] = 0;
-    printf("%s\n", recvline);
-    while(1){ 
-        __fpurge(stdin);
-        send_request(sockfd, sendline, recvline);
-        if(strcmp(recvline, "Bye") == 0){
-            break;
-        }
-        printf("%s\n", recvline);
-    }
+    // int n = recv(sockfd, recvline, BUFFER, 0);
+    // recvline[n] = '\0';
+    // if (recvline[strlen(recvline) - 1] == '\n')
+    //     recvline[strlen(recvline) - 1] = 0;
+    // printf("%s\n", recvline);
+    // while(1){ 
+    //     __fpurge(stdin);
+    //     send_request(sendline, recvline);
+    //     if(strcmp(recvline, "Bye") == 0){
+    //         break;
+    //     }
+    //     printf("%s\n", recvline);
+    // }
     return 1;
 }
 
-int manage_profile_account(int sockfd){
+int manage_profile_account(){
     char recvline[BUFFER];
     printf("_________________Quan ly tai khoan__________________\n");
     int n = recv(sockfd, recvline, BUFFER, 0);
@@ -72,7 +111,7 @@ int manage_profile_account(int sockfd){
     return 0;
 }
 
-int program_main(int sockfd) {
+int program_main() {
     char choice_main[2], recvline[BUFFER];
     int n, choice_order;
     while (1) {
@@ -81,6 +120,11 @@ int program_main(int sockfd) {
         fgets(choice_main, 2, stdin);
         int check = choice_main[0] - '0';
 
+        pthread_t recv_msg_thread;
+        if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
+            printf("ERROR: pthread\n");
+            return EXIT_FAILURE;
+        }
         switch(check) {
             case 1:
                 send(sockfd, "board", strlen("board"), 0);
@@ -103,7 +147,8 @@ int program_main(int sockfd) {
                 return 1;
             case 3:
                 send(sockfd, "direct", strlen("direct"), 0);
-                direct_transaction(sockfd);
+                add_token(sendline, "direct");
+                direct_transaction();
                 return 1;
             case 4:
                 send(sockfd, "manage", strlen("manage"), 0);
@@ -122,7 +167,7 @@ int program_main(int sockfd) {
     
 }
 
-int login(int sockfd) {
+void login() {
     char sendline[BUFFER], recvline[BUFFER];
     int sign_in = 0;
     int choice;
@@ -133,7 +178,7 @@ int login(int sockfd) {
         }else if (sign_in == 1) {
             sign_in = program_main(sockfd);
             goto MENU;
-        }
+        }   
        
         __fpurge(stdin);
         scanf("%d", &choice);
@@ -142,11 +187,11 @@ int login(int sockfd) {
                 printf("_________________Đăng nhập__________________\n");
                 printf("Username: ");
                 __fpurge(stdin);
-                send_request(sockfd, sendline, recvline);
+                send_request(sendline, recvline);
                 printf("%s\n", recvline);
                 if (strcmp(recvline, USERNAME_WRONG) != 0) {
                     __fpurge(stdin);
-                    send_request(sockfd, sendline, recvline);
+                    send_request(sendline, recvline);
                     printf("%s\n", recvline);
                     sign_in = strcmp(recvline, LOGIN_SUCCESS) == 0 ? 1 : 0;
                 }
@@ -164,7 +209,6 @@ int login(int sockfd) {
 
 int main(int argc, char **argv) {
     char ip[MAX_CHAR];
-    int sockfd;
     struct sockaddr_in serv_addr;
    
     if (argc < 3) {
@@ -188,7 +232,7 @@ int main(int argc, char **argv) {
         printf("connection with the server failed...\n");
         exit(0);
     }
-    
-    login(sockfd);
+   
+    login();
     close(sockfd);
 }

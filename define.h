@@ -14,7 +14,7 @@
 #define FALSE 0
 
 #define SERV_PORT 5500
-#define MAX_CLIENTS 50
+#define MAX_CLIENTS 100
 
 #define LOGIN_SUCCESS "Dang nhap thanh cong"
 #define LOGIN_FAIL "Dang nhap that bai"

@@ -32,6 +32,30 @@ void add_user(l_user **head, l_user *node) {
         tmp->next = node;
     }
 }
+void remove_user(l_user **head, l_user *node) {
+    l_user* temp = *head;
+    l_user* prev = NULL;
+    
+    if (temp != NULL && temp == node)
+    {
+        *head = temp->next;
+        temp = NULL;           
+        return;
+    } else {
+        while (temp != NULL && temp != node)
+        {
+            prev = temp;
+            temp = temp->next;
+        }
+
+        if (temp == NULL)
+            return;
+
+        prev->next = temp->next;
+
+        temp = NULL;
+    }
+}
 
 l_stock *create_stock(char name[MAX_CHAR], int amount, int price) {
     l_stock *temp = (l_stock *) malloc(sizeof(l_stock));
@@ -189,20 +213,22 @@ int direct_trade(l_user *current_user, l_user *trader,char stock_name[MAX_CHAR],
     return FALSE;
 }
 
-char* online_users(char username[MAX_CHAR]) {
-    current_user = get_account(username);
+char* online_users(l_user *current_user) {
     l_user *tmp = head_user;
     char *str = malloc(sizeof(char));
     char user_id[MAX_CHAR];
     while (tmp != NULL) {
-        if (tmp->is_online == TRUE && tmp != current_user) {
+        if (tmp->is_online == TRUE && tmp->id != current_user->id) {
             snprintf(user_id, MAX_CHAR,"%d", tmp->id);
-            strcat(str, "\n");
             strcat(str, user_id);
             strcat(str, ". ");
             strcat(str, tmp->username);
+            strcat(str, "\n");
         }
         tmp = tmp->next;
+    }
+    if (strlen(str) == 0) {
+        str = "There is no online user, please wait ...\n";
     }
     return str;
 }

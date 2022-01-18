@@ -59,7 +59,7 @@ void log_out(char username[MAX_CHAR]);
 l_user *trade_user(char id[MAX_CHAR]);
 char* user_stock_list(char id[MAX_CHAR]);
 int direct_trade(l_user *current_user, l_user *trader, char stock_name[MAX_CHAR], int price, int type);
-char* online_users(char username[MAX_CHAR]);
+char* online_users(l_user *current_user);
 char* get_list_stock_of_user(char username[MAX_CHAR]);
 
 // order 
@@ -84,3 +84,5 @@ int has_stock_in_overbought(char name_stock[MAX_CHAR]);
 int get_amount_from_stock(l_user **head_ref, char name_stock[MAX_CHAR]);
 int delete_all_by_key_overbought(int key);
 // end sell stock
+
+l_user* online_user;

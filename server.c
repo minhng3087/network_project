@@ -272,9 +272,8 @@ void order(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR], int
             break;
     }
 }
-
 void *client_handler(void *arg){
-    int clientfd, n, flag = 1, check = 0, buy = 0, sell = 0, flag_main = 0,
+    int clientfd, n, flag = 1, check = 0, buy = 0, sell = 0, flag_main,
         check_order = 0, check_action ;
     char buff[BUFFER_SIZE], response[BUFFER_SIZE], username[MAX_CHAR], password[MAX_CHAR];
     char stock_name[MAX_CHAR], price[MAX_CHAR], trader_id[MAX_CHAR], amount[MAX_CHAR], type[MAX_CHAR];
@@ -331,10 +330,30 @@ void *client_handler(void *arg){
             case 3: 
                 if(strcmp(buff, "direct") == 0) {
                     flag_main = 3;
+                    current_user = get_account(username);
                     DIRECT: if(check == 0) {
-                        char str[MAX_CHAR] = "Please choose user you want to transaction: ";
-                        strcat(str, online_users(username));
+                        char str[MAX_CHAR] = "Please choose user you want to transaction: \n";
                         strcpy(response, str);
+                        strcat(response, online_users(current_user));
+                        char other_rep[MAX_CHAR];
+                        l_user *tmp = head_user;
+                        while (tmp != NULL) {
+                            if (tmp->is_online == TRUE && tmp->id != current_user->id) {
+                                // int sent_length = strlen(str);
+                                // int l;
+                                // while (sent_length > 0) {
+                                //     l = send(tmp->clientfd, str, sent_length, 0);
+                                //     sent_length -= l;
+                                // }
+                                // snprintf(user_id, MAX_CHAR,"%d", tmp->id);
+                                // strcat(str, user_id);
+                                // strcat(str, "\n");
+                                strcpy(other_rep, str);
+                                strcat(other_rep, online_users(tmp));
+                                send(tmp->clientfd, other_rep, strlen(other_rep), 0);
+                            }
+                            tmp = tmp->next;
+                        }
                         check++;
                     }else if (check == 1) {
                         strcpy(trader_id, buff);
@@ -487,7 +506,7 @@ int create_server(int argc, char **argv) {
 
     int PORT = atoi(argv[1]);
 
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
         perror("socket creation failed");
         exit(0);
     };
