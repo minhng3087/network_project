@@ -74,7 +74,7 @@ void print_list_overbought();
 void delete_list_stock(l_stock** head_ref);
 int delete_all_by_key(int key);
 
-l_stock* search_stock_of_user(l_user **head_ref, char name_stock[MAX_CHAR], int price);
+l_stock* search_stock_of_user(l_user *head_ref, char name_stock[MAX_CHAR], int price);
 void delete_node_stock(l_stock *head, l_stock *n);
 
 // end buy_stock

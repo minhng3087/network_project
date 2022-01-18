@@ -377,8 +377,8 @@ int delete_all_by_key(int key){
     return totalDeleted;
 }
 
-l_stock* search_stock_of_user(l_user **head_ref, char name_stock[MAX_CHAR], int price) {
-    l_stock* temp = (*head_ref)->stock;
+l_stock* search_stock_of_user(l_user *head_ref, char name_stock[MAX_CHAR], int price) {
+    l_stock* temp = head_ref->stock;
     while(temp != NULL) {
         if(strcmp(temp->name, name_stock) == 0 && temp->price == price) {
             return temp;
