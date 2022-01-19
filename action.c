@@ -516,3 +516,35 @@ int delete_all_by_key_overbought(int key){
 
     return totalDeleted;
 }
+
+void direct_buy(l_order *order, int user_id) {
+    l_user *tmp = head_user;
+    while (tmp != NULL) {
+        if (user_id == tmp->id) {
+            l_stock *stock_buy =  search_stock_of_user(&tmp, order->stock_name, order->price);
+            if(stock_buy == NULL) {
+                add_stock(&(tmp->stock), create_stock(order->stock_name, order->amount, order->price));
+            }else {
+                stock_buy->amount += order->amount;
+            }
+            tmp->balance -= order->price * order->amount;
+        }
+        tmp = tmp->next;
+    }
+    write_file("file/users.txt");
+}
+
+void direct_sell(l_order *order, int user_id) {
+    l_user *tmp = head_user;
+    while (tmp != NULL) {
+        if (user_id == tmp->id) {
+            l_stock *stock_buy = search_stock_of_user(&tmp, order->stock_name, order->price);
+            if(stock_buy->amount == 0) {
+                delete_node_stock(tmp->stock,stock_buy);
+            }
+            tmp->balance += order->price * order->amount;
+        }
+        tmp = tmp->next;
+    }
+    write_file("file/users.txt");
+}
