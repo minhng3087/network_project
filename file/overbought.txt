@@ -1,4 +1,3 @@
-long M2 200 3
 long L12 10 20
 long L12 10 0
 long N02 0 2

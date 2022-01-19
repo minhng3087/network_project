@@ -187,20 +187,25 @@ void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]
                     while(tmp != NULL) {
                         if (strcmp(tmp->name_stock, name_stock) == 0 && price <= tmp->price && strcmp(tmp->username, info->username) != 0) {
                             l_user* buyer = get_account(tmp->username);
-                            l_stock *stock_buy =  search_stock_of_user(buyer, name_stock, tmp->price);
-                            l_stock *search_stock = search_stock_of_user(info, name_stock, tmp->price);
+                            l_stock *stock_buy =  search_stock_of_user(&buyer, name_stock, tmp->price);
+                            l_stock *search_stock = search_stock_of_user(&info, name_stock, tmp->price);
                             if(tmp->amount <= amount) {
                                 temp_amount = tmp->amount;
                                 tmp->key = TRUE;
                                 temp_balance += tmp->price * tmp->amount;
                                 buyer->balance -= tmp->price * tmp->amount;
                                 flag_delete = TRUE;
-                                // stock_buy->amount += tmp->amount;
-                                if(search_stock == NULL) {
-                                    add_stock(&(info->stock), create_stock(name_stock, tmp->amount, tmp->price));
+                                if (stock_buy != NULL) {
+                                    stock_buy->amount += tmp->amount;
                                 }else {
-                                    search_stock->amount += tmp->amount;
+                                    add_stock(&(buyer->stock), create_stock(name_stock,  tmp->amount, tmp->price));
                                 }
+                                // if(search_stock == NULL) {
+                                //     add_stock(&(info->stock), create_stock(name_stock, tmp->amount, tmp->price));
+                                // }else {
+                                //     search_stock->amount += tmp->amount;
+                                // }
+                                search_stock->amount -= tmp->amount;
                             }else if(tmp->amount > amount) {
                                 temp_amount = tmp->amount;
                                 tmp->amount = abs(tmp->amount - amount);
@@ -215,18 +220,23 @@ void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]
                                  l_stock* temp = create_stock(tmp->name_stock, amount, tmp->price);
                                  add_stock(&head_stock, temp);
 
-                                if(search_stock == NULL) {
-                                    add_stock(&(info->stock), temp);
-                                }else {
-                                    search_stock->amount += amount;
-                                }
+                                // if(search_stock == NULL) {
+                                //     add_stock(&(info->stock), temp);
+                                // }else {
+                                //     search_stock->amount += amount;
+                                // }
+                                search_stock->amount -= amount;
                             }
                             
                             // if(stock_buy->amount == 0) {
                             //     delete_node_stock(buyer->stock,stock_buy);
                             // }
+                            char *str = malloc(sizeof(char) * 1024);
+                            sprintf(str, "Mua thanh cong %s", tmp->name_stock);
                             amount -= temp_amount;
                             // count_same++;
+                            send(buyer->clientfd, str, strlen(str), 0);
+                            free(str);
                         }
                         tmp = tmp->next;
                     }
