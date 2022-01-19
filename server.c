@@ -122,7 +122,7 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
                                 delete_node_stock(seller->stock,stock_sell);
                             }
                             amount -= temp_amount;
-                            count_same++;
+                            // count_same++;
                         }
                         tmp = tmp->next;
                     }
@@ -197,37 +197,49 @@ void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]
                                 tmp->key = TRUE;
                                 temp_balance += tmp->price * tmp->amount;
                                 buyer->balance -= tmp->price * tmp->amount;
-                                stock_buy->amount += tmp->amount;
                                 flag_delete = TRUE;
-                                if(search_stock == NULL) {
-                                    add_stock(&(info->stock), create_stock(name_stock, tmp->amount, tmp->price));
+                                if (stock_buy != NULL) {
+                                    stock_buy->amount += tmp->amount;
                                 }else {
-                                    search_stock->amount += tmp->amount;
+                                    add_stock(&(buyer->stock), create_stock(name_stock,  tmp->amount, tmp->price));
                                 }
+                                // if(search_stock == NULL) {
+                                //     add_stock(&(info->stock), create_stock(name_stock, tmp->amount, tmp->price));
+                                // }else {
+                                //     search_stock->amount += tmp->amount;
+                                // }
+                                search_stock->amount -= tmp->amount;
                             }else if(tmp->amount > amount) {
                                 temp_amount = tmp->amount;
                                 tmp->amount = abs(tmp->amount - amount);
                                 temp_balance += tmp->price * amount;
                                 buyer->balance -= tmp->price * amount;
                                 // update amount stock of buyer
-                                stock_buy->amount += amount;
+                                if (stock_buy != NULL) {
+                                    stock_buy->amount += amount;
+                                }
                                 // L15 100 5 => L15 100 4 -> add L15 100 1 to LL
                                 
-                                l_stock* temp = create_stock(tmp->name_stock, amount, tmp->price);
-                                add_stock(&head_stock, temp);
+                                 l_stock* temp = create_stock(tmp->name_stock, amount, tmp->price);
+                                 add_stock(&head_stock, temp);
 
-                                if(search_stock == NULL) {
-                                    add_stock(&(info->stock), temp);
-                                }else {
-                                    search_stock->amount += amount;
-                                }
+                                // if(search_stock == NULL) {
+                                //     add_stock(&(info->stock), temp);
+                                // }else {
+                                //     search_stock->amount += amount;
+                                // }
+                                search_stock->amount -= amount;
                             }
                             
-                            if(stock_buy->amount == 0) {
-                                delete_node_stock(buyer->stock,stock_buy);
-                            }
+                            // if(stock_buy->amount == 0) {
+                            //     delete_node_stock(buyer->stock,stock_buy);
+                            // }
+                            char *str = malloc(sizeof(char) * 1024);
+                            sprintf(str, "Mua thanh cong %s", tmp->name_stock);
                             amount -= temp_amount;
-                            count_same++;
+                            // count_same++;
+                            send(buyer->clientfd, str, strlen(str), 0);
+                            free(str);
                         }
                         tmp = tmp->next;
                     }
@@ -254,6 +266,7 @@ void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]
                     flag_delete = FALSE; 
                 }
             }
+            break;
 
     }
     send(clientfd, response, strlen(response), 0);
@@ -263,7 +276,7 @@ void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]
 void order(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR], int check_action) {
     switch(check_action) {
         case 1:
-            buy_stock(clientfd, request, username);
+            // buy_stock(clientfd, request, username);
             break;
         case 2: 
             sell_stock(clientfd, request, username);
@@ -498,6 +511,7 @@ void *client_handler(void *arg){
                             // send to client list stock to sell
                             send(clientfd, response, strlen(response), 0);
                             check_action = 2;
+                            free(get_list_stock_of_user(username));
                         }
                         else if (strcmp(buff, "q") == 0) {
                             check_action = 3;
