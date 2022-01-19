@@ -403,8 +403,8 @@ int delete_all_by_key(int key){
     return totalDeleted;
 }
 
-l_stock* search_stock_of_user(l_user **head_ref, char name_stock[MAX_CHAR], int price) {
-    l_stock* temp = (*head_ref)->stock;
+l_stock* search_stock_of_user(l_user *head_ref, char name_stock[MAX_CHAR], int price) {
+    l_stock* temp = head_ref->stock;
     while(temp != NULL) {
         if(strcmp(temp->name, name_stock) == 0 && temp->price == price) {
             return temp;
@@ -417,10 +417,10 @@ l_stock* search_stock_of_user(l_user **head_ref, char name_stock[MAX_CHAR], int 
 char* get_list_stock_of_user(char username[MAX_CHAR]) {
     l_user *tmp = head_user;
     char amount[MAX_CHAR];
-    char* str = malloc(sizeof(char));
+    char* str = malloc(sizeof(char) * 1024);
     while (tmp != NULL) {
         if (strcmp(tmp->username, username) == 0) {
-            l_stock *temp = (l_stock *) malloc(sizeof(l_stock));
+            l_stock *temp = (l_stock *) malloc(sizeof(tmp->stock));
             temp = tmp->stock;
             while(temp != NULL) {
                 strcat(str, "\n");

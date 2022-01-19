@@ -54,12 +54,13 @@ void write_file(char *filename) {
             printf("Could not open file %s\n",target);
             return;
         }
-        l_stock *info_stock = (l_stock *) malloc(sizeof(l_stock));
+        l_stock *info_stock = (l_stock *) malloc(sizeof(tmp->stock));
         info_stock = tmp->stock;
         while(info_stock != NULL) {
             fprintf(stock, "%s %d %d\n", info_stock->name, info_stock->price, info_stock->amount);
             info_stock = info_stock->next;
         }
+        free(info_stock);
         fclose(stock);
         tmp = tmp->next;
     }
