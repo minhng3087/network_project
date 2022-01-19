@@ -21,13 +21,18 @@ void add_token(char str[BUFFER], char header[BUFFER]) {
     strcat(str, "|");
     strcat(str, header);
 }
-
+int flag = 0;
 void recv_msg_handler() {
-	char message[BUFFER] = {};
+    char message[BUFFER];
     while (1) {
         int receive = recv(sockfd, message, BUFFER, 0);
         if (receive > 0) {
-            printf("%s", message);
+            if (strcmp(message,"end") == 0) {
+                memset(message, 0, sizeof(message));
+                continue;
+            }
+            printf("%s\n", message);
+            
             str_overwrite_stdout();
         } else if (receive == 0) {
             printf("connection lost!");
@@ -41,22 +46,6 @@ void recv_msg_handler() {
 
 int direct_transaction(){
     printf("_________________Giao dịch trực tiếp__________________\n");
-    // int n = recv(sockfd, recvline, BUFFER, 0);
-    // recvline[n] = '\0';
-    // if (recvline[strlen(recvline) - 1] == '\n')
-    //     recvline[strlen(recvline) - 1] = 0;
-    // printf("%s\n", recvline);
-    
-    // send_msg_handler();
-    // recv_msg_handler();
-    // pthread_t send_msg_handler;
-    // if(pthread_create(&send_msg_handler, NULL, (void *) recv_msg_handler, NULL) != 0){
-	// 	printf("ERROR: pthread\n");
-	// 	return EXIT_FAILURE;
-	// }
-    // while(puts(strchr(sendchar, '|')) != NULL) {
-
-    // }
     
     while(1){ 
         __fpurge(stdin);
@@ -79,36 +68,39 @@ int board() {
     //     send_request(sendline, recvline);
     //     printf("%s\n", recvline);
     // }
+    while(1){ 
+        __fpurge(stdin);
+        fgets(sendline, BUFFER, stdin);
+        send(sockfd, sendline, strlen(sendline), 0);
+    }
     return 0;
 }
 
 int order(){
-    char sendline[BUFFER], recvline[BUFFER];
-    // int n = recv(sockfd, recvline, BUFFER, 0);
-    // recvline[n] = '\0';
-    // if (recvline[strlen(recvline) - 1] == '\n')
-    //     recvline[strlen(recvline) - 1] = 0;
-    // printf("%s\n", recvline);
-    // while(1){ 
-    //     __fpurge(stdin);
-    //     send_request(sendline, recvline);
-    //     if(strcmp(recvline, "Bye") == 0){
-    //         break;
-    //     }
-    //     printf("%s\n", recvline);
-    // }
+    char sendline[BUFFER];
+    while(1){ 
+        __fpurge(stdin);
+        fgets(sendline, BUFFER, stdin);
+        send(sockfd, sendline, strlen(sendline), 0);
+        if (strcmp(sendline, "q\n") == 0) {
+            break;
+        }
+    }
     return 1;
 }
 
 int manage_profile_account(){
-    char recvline[BUFFER];
+    char sendline[BUFFER];
     printf("_________________Quan ly tai khoan__________________\n");
-    int n = recv(sockfd, recvline, BUFFER, 0);
-    recvline[n] = '\0';
-    if (recvline[strlen(recvline) - 1] == '\n')
-        recvline[strlen(recvline) - 1] = 0;
-    printf("%s\n", recvline);
-    return 0;
+    while(1){ 
+        __fpurge(stdin);
+        fgets(sendline, BUFFER, stdin);
+        send(sockfd, sendline, strlen(sendline), 0);
+        if (strcmp(sendline, "q\n") == 0) {
+            break;
+        }
+    }
+    return 1;
 }
 
 int program_main() {
@@ -120,11 +112,6 @@ int program_main() {
         fgets(choice_main, 2, stdin);
         int check = choice_main[0] - '0';
 
-        pthread_t recv_msg_thread;
-        if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
-            printf("ERROR: pthread\n");
-            return EXIT_FAILURE;
-        }
         switch(check) {
             case 1:
                 send(sockfd, "board", strlen("board"), 0);
@@ -152,7 +139,7 @@ int program_main() {
                 return 1;
             case 4:
                 send(sockfd, "manage", strlen("manage"), 0);
-                manage_profile_account(sockfd);
+                manage_profile_account();
                 return 1;
             case 5: 
                 send(sockfd, "logout", strlen("logout"), 0);
@@ -176,6 +163,11 @@ void login() {
         if (sign_in == 0) {
             menu_login();
         }else if (sign_in == 1) {
+            pthread_t recv_msg_thread;
+            if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
+                printf("ERROR: pthread\n");
+                return;
+            }
             sign_in = program_main(sockfd);
             goto MENU;
         }   

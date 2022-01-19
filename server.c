@@ -25,7 +25,6 @@ int temp_amount = 0;
 int sell_flag = 0;
 int count_same = 0;
 
-
 void manage_profile_account(int clientfd, char username[MAX_CHAR]) {
     l_user *user =  get_account(username);
     char target[BUFFER_SIZE];
@@ -40,7 +39,8 @@ void manage_profile_account(int clientfd, char username[MAX_CHAR]) {
         strcat(response, target);
         stock = stock->next;
     }
-    send(clientfd, response, strlen(response), 0);
+    strcat(response, "Press q to quit");
+    send(clientfd, response, strlen(response), 0);  
 }
 
 void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]) {
@@ -74,7 +74,7 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
                 if(has_stock_in_oversold(name_stock) == FALSE) {
                     write_node_to_overfile("file/overbought.txt", username, name_stock, price, amount);
                     strcpy(response, "Order Match Success (1) !!!\n");
-                    strcat(response, "Press q to quit\n");
+                    strcat(response, "Press q to quit");
                 }
                 // case stock exist in overbought.txt
                 else {
@@ -266,7 +266,7 @@ void order(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR], int
             sell_stock(clientfd, request, username);
             break;
         case 3:
-            send(clientfd, "Bye", strlen("Bye"), 0);
+            send(clientfd, "end", strlen("end"), 0);
             buy_flag = 0;
             sell_flag = 0;
             break;
@@ -432,7 +432,6 @@ void *client_handler(void *arg){
                                     strcpy(response, "Invalid amount, input again:");
                                 } else {
                                     strcpy(response, "Please wait...");
-                                    // flag_main = 4;
                                 }
                             }
                         } else {
@@ -476,7 +475,14 @@ void *client_handler(void *arg){
                     }
                 }
                 if(strcmp(buff, "manage") == 0) {
-                    MANAGE: manage_profile_account(clientfd, username);
+                    flag_main = 4;
+                    MANAGE: 
+                    if (strcmp(buff, "q") == 0) {
+                        flag_main = 0;
+                        send(clientfd, "end", strlen("end"), 0);
+                    } else {
+                        manage_profile_account(clientfd, username);
+                    }
                 }
                 if(strcmp(buff, "logout") == 0) {
                     log_out(username);
