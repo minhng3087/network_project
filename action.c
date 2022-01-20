@@ -1,9 +1,11 @@
 #include "action.h"
+#include "file.h"
 
 extern l_user *head_user;
 extern l_oversold *head_oversold;
 extern l_overbought *head_overbought;
 extern l_stock *head_stock;
+extern l_order *head_order;
 
 void error(char *s){
     perror(s);
@@ -517,10 +519,10 @@ int delete_all_by_key_overbought(int key){
     return totalDeleted;
 }
 
-void direct_buy(l_order *order, int user_id) {
+void direct_buy(l_order *order, int clientfd) {
     l_user *tmp = head_user;
     while (tmp != NULL) {
-        if (user_id == tmp->id) {
+        if (clientfd == tmp->clientfd) {
             l_stock *stock_buy =  search_stock_of_user(&tmp, order->stock_name, order->price);
             if(stock_buy == NULL) {
                 add_stock(&(tmp->stock), create_stock(order->stock_name, order->amount, order->price));
@@ -534,10 +536,10 @@ void direct_buy(l_order *order, int user_id) {
     write_file("file/users.txt");
 }
 
-void direct_sell(l_order *order, int user_id) {
+void direct_sell(l_order *order, int clientfd) {
     l_user *tmp = head_user;
     while (tmp != NULL) {
-        if (user_id == tmp->id) {
+        if (clientfd == tmp->clientfd) {
             l_stock *stock_buy = search_stock_of_user(&tmp, order->stock_name, order->price);
             if(stock_buy->amount == 0) {
                 delete_node_stock(tmp->stock,stock_buy);
@@ -547,4 +549,15 @@ void direct_sell(l_order *order, int user_id) {
         tmp = tmp->next;
     }
     write_file("file/users.txt");
+}
+
+l_user *get_current_user(int clientfd) {
+    l_user *tmp = head_user;
+    while (tmp != NULL) {
+        if (tmp->clientfd == clientfd) {
+            return tmp;
+        }
+        tmp = tmp->next;
+    }
+    return NULL;
 }

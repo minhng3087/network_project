@@ -93,4 +93,6 @@ int delete_all_by_key_overbought(int key);
 // end sell stock
 
 l_user* online_user;
-void direct_buy(l_order *order, int user_id);
+void direct_buy(l_order *order, int clientfd);
+void direct_sell(l_order *order, int clientfd);
+l_user *get_current_user(int clientfd);

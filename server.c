@@ -17,6 +17,7 @@ extern l_user *head_user;
 extern l_stock *head_stock;
 extern l_oversold *head_oversold;
 extern l_overbought *head_overbought;
+extern l_order *head_order;
 
 int buy_flag = 0;
 int flag_delete = FALSE;
@@ -25,8 +26,6 @@ int temp_amount = 0;
 int sell_flag = 0;
 int count_same = 0;
 int list_trade[2];
-
-l_order *order_direct;
 
 void manage_profile_account(int clientfd, char username[MAX_CHAR]) {
     l_user *user =  get_account(username);
@@ -291,6 +290,8 @@ void order(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR], int
 void *client_handler(void *arg){
     int clientfd, n, flag = 1, check = 0, buy = 0, sell = 0, flag_main,
         check_order = 0, check_action ;
+    l_order *order_direct = malloc(sizeof(l_order));
+
     char buff[BUFFER_SIZE], response[BUFFER_SIZE], username[MAX_CHAR], password[MAX_CHAR];
     char stock_name[MAX_CHAR], price[MAX_CHAR], trader_id[MAX_CHAR], amount[MAX_CHAR], type[MAX_CHAR];
     l_user *trader;
@@ -346,11 +347,18 @@ void *client_handler(void *arg){
             case 3: 
                 if(strcmp(buff, "direct") == 0) {
                     flag_main = 3;
-                    current_user = get_account(username);
+                    current_user = get_current_user(clientfd);
                     DIRECT: 
                     if (strcmp(buff, "y") == 0 || strcmp(buff, "yes") == 0) {
                         strcpy(response, "Transaction succesfully!\n");
                         strcat(response, "Press q to quit");
+                        if (head_order->type == 0) {
+                            direct_buy(head_order, list_trade[0]);
+                            direct_sell(head_order, list_trade[1]);
+                        } else {
+                            direct_buy(head_order, list_trade[1]);
+                            direct_sell(head_order, list_trade[0]);
+                        }
                         send(list_trade[0], response, strlen(response), 0);
                         send(list_trade[1], response, strlen(response), 0);
                         continue;
@@ -362,6 +370,7 @@ void *client_handler(void *arg){
                         continue;
                     } if (strcmp(buff, "q") == 0) {
                         flag_main = 0;
+                        check = 0;
                         send(clientfd, "end", strlen("end"), 0);
                         continue;
                     } 
@@ -434,14 +443,12 @@ void *client_handler(void *arg){
                                     order_direct->amount = atoi(amount);
                                     order_direct->price = atoi(price);
                                     order_direct->type = 0;
+                                    head_order = order_direct;
                                     strcat(direct_order, target);
                                     send(trader->clientfd, direct_order, strlen(direct_order), 0);
                                     strcpy(response, "Please wait...");
-                                    buy++;
                                 }
-                            } else if (buy == 4) {
-
-                            }
+                            } 
                         } else if (strcmp(type,"2") == 0) {
                             if (sell == 1) {
                                 strcpy(stock_name, buff);
@@ -474,7 +481,19 @@ void *client_handler(void *arg){
                                 if (atoi(buff) > atoi(amount)) {
                                     strcpy(response, "Invalid amount, input again:");
                                 } else {
+                                    char target[BUFFER];
                                     strcpy(response, "Please wait...");
+                                    strcat(direct_order, username);
+                                    strcat(direct_order, " want to sell: ");
+                                    sprintf(target, "%s of %s with price: %s (y/n)", amount, stock_name, price);
+                                    strcpy(order_direct->stock_name, stock_name);
+                                    order_direct->user_id = current_user->id;
+                                    order_direct->amount = atoi(amount);
+                                    order_direct->price = atoi(price);
+                                    order_direct->type = 0;
+                                    head_order = order_direct;
+                                    strcat(direct_order, target);
+                                    send(trader->clientfd, direct_order, strlen(direct_order), 0);
                                 }
                             }
                         } else if (strcmp(buff, "q") == 0) {

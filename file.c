@@ -7,6 +7,7 @@ l_user *head_user = NULL;
 l_overbought *head_overbought = NULL;
 l_oversold *head_oversold = NULL;
 l_stock *head_stock = NULL; // store stock to save file order_matching.txt
+l_order *head_order = NULL;
 
 int read_file(char *filename) {
     FILE *fo;
