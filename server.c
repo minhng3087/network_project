@@ -66,6 +66,7 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
             buy_flag++;
             break;
         case 3:
+            
             amount = atoi(request);
             int amount2 = amount;
             l_user *info = get_account(username); //current_user
@@ -102,7 +103,7 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
                                 }else {
                                     search_stock->amount += tmp->amount;
                                 }
-                                sprintf(str, "Ban thanh cong %s gia %d", tmp->name_stock, tmp->price);
+                                sprintf(str, "Ban thanh cong %s gia %d so luong %d", tmp->name_stock, tmp->price, tmp->amount);
                                 send(seller->clientfd, str, strlen(str), 0);
                                 free(str);
                             }else if(tmp->amount > amount) {
@@ -123,7 +124,7 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
                                     search_stock->amount += amount;
                                 }
 
-                                sprintf(str, "Ban thanh cong %s gia %d", tmp->name_stock, tmp->price);
+                                sprintf(str, "Ban thanh cong %s gia %d so luong %d", tmp->name_stock, tmp->price, amount);
                                 send(seller->clientfd, str, strlen(str), 0);
                                 free(str);
                             }
@@ -162,7 +163,11 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
             break;
     }
     send(clientfd, response, strlen(response), 0);
+<<<<<<< HEAD
     // pthread_mutex_unlock(&lock);
+=======
+    //  pthread_mutex_unlock(&lock);
+>>>>>>> 5df7caa9c0123aed28c2005d42ea8fca08ba97b6
 }
 
 void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]) {
@@ -218,7 +223,7 @@ void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]
                                     add_stock(&(buyer->stock), create_stock(name_stock,  tmp->amount, tmp->price));
                                 }
                                 search_stock->amount -= tmp->amount;
-                                sprintf(str, "Mua thanh cong %s gia %d", tmp->name_stock, tmp->price);
+                                sprintf(str, "Mua thanh cong %s gia %d so luong %d", tmp->name_stock, tmp->price, tmp->amount);
                                 send(buyer->clientfd, str, strlen(str), 0);
                                 free(str);
                             }else if(tmp->amount > amount) {
@@ -235,7 +240,7 @@ void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]
                                 l_stock* temp = create_stock(tmp->name_stock, amount, tmp->price);
                                 add_stock(&head_stock, temp);
                                 search_stock->amount -= amount;
-                                sprintf(str, "Mua thanh cong %s gia %d", tmp->name_stock, tmp->price);
+                                sprintf(str, "Mua thanh cong %s gia %d so luong %d", tmp->name_stock, tmp->price, amount);
                                 send(buyer->clientfd, str, strlen(str), 0);
                                 free(str);
                             }
