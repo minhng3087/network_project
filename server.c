@@ -17,6 +17,7 @@ extern l_user *head_user;
 extern l_stock *head_stock;
 extern l_oversold *head_oversold;
 extern l_overbought *head_overbought;
+extern l_order *head_order;
 
 int buy_flag = 0;
 int flag_delete = FALSE;
@@ -24,6 +25,7 @@ int temp_balance = 0;
 int temp_amount = 0;
 int sell_flag = 0;
 int count_same = 0;
+int list_trade[2];
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 void manage_profile_account(int clientfd, char username[MAX_CHAR]) {
@@ -293,6 +295,8 @@ void order(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR], int
 void *client_handler(void *arg){
     int clientfd, n, flag = 1, check = 0, buy = 0, sell = 0, flag_main,
         check_order = 0, check_action ;
+    l_order *order_direct = malloc(sizeof(l_order));
+
     char buff[BUFFER_SIZE], response[BUFFER_SIZE], username[MAX_CHAR], password[MAX_CHAR];
     char stock_name[MAX_CHAR], price[MAX_CHAR], trader_id[MAX_CHAR], amount[MAX_CHAR], type[MAX_CHAR];
     l_user *trader;
@@ -348,8 +352,35 @@ void *client_handler(void *arg){
             case 3: 
                 if(strcmp(buff, "direct") == 0) {
                     flag_main = 3;
-                    current_user = get_account(username);
-                    DIRECT: if(check == 0) {
+                    current_user = get_current_user(clientfd);
+                    DIRECT: 
+                    if (strcmp(buff, "y") == 0 || strcmp(buff, "yes") == 0) {
+                        strcpy(response, "Transaction succesfully!\n");
+                        strcat(response, "Press q to quit");
+                        if (head_order->type == 0) {
+                            direct_buy(head_order, list_trade[0]);
+                            direct_sell(head_order, list_trade[1]);
+                        } else {
+                            direct_buy(head_order, list_trade[1]);
+                            direct_sell(head_order, list_trade[0]);
+                        }
+                        send(list_trade[0], response, strlen(response), 0);
+                        send(list_trade[1], response, strlen(response), 0);
+                        continue;
+                    } else if (strcmp(buff, "n") == 0 || strcmp(buff, "no") == 0) {
+                        strcpy(response, "Transaction not succesfully!\n");
+                        strcat(response, "Press q to quit");
+                        send(list_trade[0], response, strlen(response), 0);
+                        send(list_trade[1], response, strlen(response), 0);
+                        continue;
+                    } if (strcmp(buff, "q") == 0) {
+                        flag_main = 0;
+                        check = 0;
+                        send(clientfd, "end", strlen("end"), 0);
+                        continue;
+                    } 
+
+                    if(check == 0) {
                         char str[MAX_CHAR] = "Please choose user you want to transaction: \n";
                         strcpy(response, str);
                         strcat(response, online_users(current_user));
@@ -357,15 +388,6 @@ void *client_handler(void *arg){
                         l_user *tmp = head_user;
                         while (tmp != NULL) {
                             if (tmp->is_online == TRUE && tmp->id != current_user->id) {
-                                // int sent_length = strlen(str);
-                                // int l;
-                                // while (sent_length > 0) {
-                                //     l = send(tmp->clientfd, str, sent_length, 0);
-                                //     sent_length -= l;
-                                // }
-                                // snprintf(user_id, MAX_CHAR,"%d", tmp->id);
-                                // strcat(str, user_id);
-                                // strcat(str, "\n");
                                 strcpy(other_rep, str);
                                 strcat(other_rep, online_users(tmp));
                                 send(tmp->clientfd, other_rep, strlen(other_rep), 0);
@@ -376,6 +398,8 @@ void *client_handler(void *arg){
                     }else if (check == 1) {
                         strcpy(trader_id, buff);
                         trader = trade_user(trader_id);
+                        list_trade[0] = current_user->clientfd;
+                        list_trade[1] = trader->clientfd;
                         if(trader) {
                             strcpy(response, "Please choose action(1.Buy, 2.Sell): ");
                             check++;
@@ -384,6 +408,7 @@ void *client_handler(void *arg){
                             check--;
                         }
                     }else if (check == 2) {
+                        char direct_order[BUFFER_SIZE];
                         if (strcmp(type,"1") == 0) {
                             if (buy == 1) {
                                 strcpy(stock_name, buff);
@@ -414,9 +439,21 @@ void *client_handler(void *arg){
                                 if (atoi(buff) > atoi(amount)) {
                                     strcpy(response, "Invalid amount, input again:");
                                 } else {
+                                    char target[BUFFER];
+                                    strcat(direct_order, username);
+                                    strcat(direct_order, " want to buy: ");
+                                    sprintf(target, "%s of %s with price: %s (y/n)", amount, stock_name, price);
+                                    strcpy(order_direct->stock_name, stock_name);
+                                    order_direct->user_id = current_user->id;
+                                    order_direct->amount = atoi(amount);
+                                    order_direct->price = atoi(price);
+                                    order_direct->type = 0;
+                                    head_order = order_direct;
+                                    strcat(direct_order, target);
+                                    send(trader->clientfd, direct_order, strlen(direct_order), 0);
                                     strcpy(response, "Please wait...");
                                 }
-                            }
+                            } 
                         } else if (strcmp(type,"2") == 0) {
                             if (sell == 1) {
                                 strcpy(stock_name, buff);
@@ -449,9 +486,24 @@ void *client_handler(void *arg){
                                 if (atoi(buff) > atoi(amount)) {
                                     strcpy(response, "Invalid amount, input again:");
                                 } else {
+                                    char target[BUFFER];
                                     strcpy(response, "Please wait...");
+                                    strcat(direct_order, username);
+                                    strcat(direct_order, " want to sell: ");
+                                    sprintf(target, "%s of %s with price: %s (y/n)", amount, stock_name, price);
+                                    strcpy(order_direct->stock_name, stock_name);
+                                    order_direct->user_id = current_user->id;
+                                    order_direct->amount = atoi(amount);
+                                    order_direct->price = atoi(price);
+                                    order_direct->type = 0;
+                                    head_order = order_direct;
+                                    strcat(direct_order, target);
+                                    send(trader->clientfd, direct_order, strlen(direct_order), 0);
                                 }
                             }
+                        } else if (strcmp(buff, "q") == 0) {
+                            flag_main = 0;
+                            send(clientfd, "end", strlen("end"), 0);
                         } else {
                             strcpy(type, buff);
                             if (strcmp(type,"1") == 0) {

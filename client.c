@@ -3,6 +3,9 @@
 
 int sockfd = 0;
 char sendline[BUFFER] = {};
+char recvline[BUFFER];
+pthread_t recv_msg_thread;
+int check_out = 0;
 
 void send_request(char sendline[BUFFER], char recvline[BUFFER]) {
     fgets(sendline, BUFFER, stdin);
@@ -25,7 +28,13 @@ int flag = 0;
 void recv_msg_handler() {
     char message[BUFFER];
     while (1) {
+        if (check_out == 1) {
+            break;
+        }
         int receive = recv(sockfd, message, BUFFER, 0);
+        message[receive] = '\0';
+        if (message[strlen(message) - 1] == '\n')
+        message[strlen(message) - 1] = 0;
         if (receive > 0) {
             if (strcmp(message,"end") == 0) {
                 memset(message, 0, sizeof(message));
@@ -51,12 +60,15 @@ int direct_transaction(){
         __fpurge(stdin);
         fgets(sendline, BUFFER, stdin);
         send(sockfd, sendline, strlen(sendline), 0);
+        if (strcmp(sendline, "q\n") == 0) {
+            break;
+        }
     }
     return 0;
 }
 
 int board() {
-    char sendline[BUFFER], recvline[BUFFER];
+    char sendline[BUFFER];
     printf("_________________Bảng điện__________________\n");
     // int n = recv(sockfd, recvline, BUFFER, 0);
     // recvline[n] = '\0';
@@ -77,7 +89,6 @@ int board() {
 }
 
 int order(){
-    char sendline[BUFFER];
     while(1){ 
         __fpurge(stdin);
         fgets(sendline, BUFFER, stdin);
@@ -90,7 +101,6 @@ int order(){
 }
 
 int manage_profile_account(){
-    char sendline[BUFFER];
     printf("_________________Quan ly tai khoan__________________\n");
     while(1){ 
         __fpurge(stdin);
@@ -104,10 +114,14 @@ int manage_profile_account(){
 }
 
 int program_main() {
-    char choice_main[2], recvline[BUFFER];
+    char choice_main[2];
     int n, choice_order;
     while (1) {
         menu_main();
+        if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
+            printf("ERROR: pthread\n");
+            return EXIT_FAILURE;
+        }
         __fpurge(stdin);
         fgets(choice_main, 2, stdin);
         int check = choice_main[0] - '0';
@@ -130,11 +144,11 @@ int program_main() {
                         send(sockfd, "S", strlen("S"), 0);
                         break;
                 }
-                order(sockfd);
+                order();
                 return 1;
             case 3:
                 send(sockfd, "direct", strlen("direct"), 0);
-                add_token(sendline, "direct");
+                // add_token(sendline, "direct");
                 direct_transaction();
                 return 1;
             case 4:
@@ -148,6 +162,7 @@ int program_main() {
                 if (recvline[strlen(recvline) - 1] == '\n')
                     recvline[strlen(recvline) - 1] = 0;
                 printf("%s\n", recvline);
+                check_out = 1;
                 return 0;
         }
     }
@@ -158,17 +173,13 @@ void login() {
     char sendline[BUFFER], recvline[BUFFER];
     int sign_in = 0;
     int choice;
-    
+    // strcpy(recvline, "");
+
     MENU: while(1) {
         if (sign_in == 0) {
             menu_login();
         }else if (sign_in == 1) {
-            pthread_t recv_msg_thread;
-            if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
-                printf("ERROR: pthread\n");
-                return;
-            }
-            sign_in = program_main(sockfd);
+            sign_in = program_main();
             goto MENU;
         }   
        
