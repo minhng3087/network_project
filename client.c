@@ -1,5 +1,7 @@
 #include "client.h"
 #include "menu.h"
+#include "utils/drawUtils.h"
+#include "utils/define.h"
 
 int sockfd = 0;
 char sendline[BUFFER] = {};
@@ -48,7 +50,7 @@ int direct_transaction(){
     printf("_________________Giao dịch trực tiếp__________________\n");
     
     while(1){ 
-        __fpurge(stdin);
+        fpurge(stdin);
         fgets(sendline, BUFFER, stdin);
         send(sockfd, sendline, strlen(sendline), 0);
     }
@@ -69,7 +71,7 @@ int board() {
     //     printf("%s\n", recvline);
     // }
     while(1){ 
-        __fpurge(stdin);
+        fpurge(stdin);
         fgets(sendline, BUFFER, stdin);
         send(sockfd, sendline, strlen(sendline), 0);
     }
@@ -79,7 +81,7 @@ int board() {
 int order(){
     char sendline[BUFFER];
     while(1){ 
-        __fpurge(stdin);
+        fpurge(stdin);
         fgets(sendline, BUFFER, stdin);
         send(sockfd, sendline, strlen(sendline), 0);
         if (strcmp(sendline, "q\n") == 0) {
@@ -93,7 +95,7 @@ int manage_profile_account(){
     char sendline[BUFFER];
     printf("_________________Quan ly tai khoan__________________\n");
     while(1){ 
-        __fpurge(stdin);
+        fpurge(stdin);
         fgets(sendline, BUFFER, stdin);
         send(sockfd, sendline, strlen(sendline), 0);
         if (strcmp(sendline, "q\n") == 0) {
@@ -108,7 +110,7 @@ int program_main() {
     int n, choice_order;
     while (1) {
         menu_main();
-        __fpurge(stdin);
+        fpurge(stdin);
         fgets(choice_main, 2, stdin);
         int check = choice_main[0] - '0';
 
@@ -158,31 +160,48 @@ void login() {
     char sendline[BUFFER], recvline[BUFFER];
     int sign_in = 0;
     int choice;
-    
-    MENU: while(1) {
+    state = 0; 
         if (sign_in == 0) {
-            menu_login();
-        }else if (sign_in == 1) {
             pthread_t recv_msg_thread;
             if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
                 printf("ERROR: pthread\n");
                 return;
             }
-            sign_in = program_main(sockfd);
-            goto MENU;
+            while (1){
+                if (state == MENU){
+                    displayMenuWindow();
+                }
+                if (state == LOGIN){
+                    displayLoginWindow(1);
+                }
+                if (state == SIGN_UP){
+                    displaySignUpWindow(1);
+                }
+                if (state == QUIT){
+                    quit();
+                    break;
+            }
+        }
+        //   menu_login();
+        }else if (sign_in == 1) {
+            // pthread_t recv_msg_thread;
+            // if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
+            //     printf("ERROR: pthread\n");
+            //     return;
+            // }
+            // sign_in = program_main(sockfd);
         }   
-       
-        __fpurge(stdin);
+        fpurge(stdin);
         scanf("%d", &choice);
         switch (choice) {
             case 1: 
                 printf("_________________Đăng nhập__________________\n");
                 printf("Username: ");
-                __fpurge(stdin);
+                fpurge(stdin);
                 send_request(sendline, recvline);
                 printf("%s\n", recvline);
                 if (strcmp(recvline, USERNAME_WRONG) != 0) {
-                    __fpurge(stdin);
+                    fpurge(stdin);
                     send_request(sendline, recvline);
                     printf("%s\n", recvline);
                     sign_in = strcmp(recvline, LOGIN_SUCCESS) == 0 ? 1 : 0;
@@ -192,17 +211,41 @@ void login() {
                 printf("_________________Đăng ký__________________\n");
                 break;
             default: 
-                goto MENU;
                 break;
         }
-    }
-    
 }
+    
+
+
+// void menu(){
+//     state = 0; 
+//     displayMenuWindow();
+//     while (1)
+//     {
+//         if (state == MENU)
+//         {
+//             displayMenuWindow();
+//         }
+//         if (state == LOGIN)
+//         {
+//             displayLoginWindow(1);
+//         }
+//         if (state == SIGN_UP)
+//         {
+//             displaySignUpWindow(1);
+//         }
+//         if (state == QUIT)
+//         {
+//             quit();
+//             break;
+//         }
+//     }
+// }
 
 int main(int argc, char **argv) {
     char ip[MAX_CHAR];
     struct sockaddr_in serv_addr;
-   
+    
     if (argc < 3) {
         printf("Input: %s <ip> <port>\n", argv[0]);
         return 0;
@@ -210,7 +253,7 @@ int main(int argc, char **argv) {
     
     strcpy(ip, argv[1]);
     int port = atoi(argv[2]);
-
+    
     if ( (sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
         perror("socket creation failed");
         exit(EXIT_FAILURE);
@@ -224,7 +267,7 @@ int main(int argc, char **argv) {
         printf("connection with the server failed...\n");
         exit(0);
     }
-   
+    
     login();
     close(sockfd);
 }
