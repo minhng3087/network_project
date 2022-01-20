@@ -294,6 +294,13 @@ void print_list_oversold() {
         tmp = tmp->next;
     }
 }
+void print_list_overbought() {
+    l_overbought *tmp = head_overbought;
+    while (tmp != NULL) {
+        printf("%s %s %d %d\n", tmp->username, tmp->name_stock, tmp->price, tmp->amount);
+        tmp = tmp->next;
+    }
+}
 
 void delete_list_stock(l_stock** head_ref){
    /* deref head_ref to get the real head */

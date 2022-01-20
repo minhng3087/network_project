@@ -78,6 +78,7 @@ void add_overbought(l_overbought **head, l_overbought *node);
 int has_stock_in_oversold(char name_stock[MAX_CHAR]);
 
 void print_list_overbought();
+void print_list_oversold();
 void delete_list_stock(l_stock** head_ref);
 int delete_all_by_key(int key);
 
