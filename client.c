@@ -162,20 +162,20 @@ void login() {
     int choice;
     state = 0; 
         if (sign_in == 0) {
-            pthread_t recv_msg_thread;
-            if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
-                printf("ERROR: pthread\n");
-                return;
-            }
             while (1){
                 if (state == MENU){
                     displayMenuWindow();
                 }
                 if (state == LOGIN){
-                    displayLoginWindow(1);
+                    pthread_t recv_msg_thread;
+                    if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
+                        printf("ERROR: pthread\n");
+                        return;
+                    }
+                    displayLoginWindow(sockfd);
                 }
                 if (state == SIGN_UP){
-                    displaySignUpWindow(1);
+                    displaySignUpWindow(sockfd);
                 }
                 if (state == QUIT){
                     quit();
@@ -184,11 +184,11 @@ void login() {
         }
         //   menu_login();
         }else if (sign_in == 1) {
-            // pthread_t recv_msg_thread;
-            // if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
-            //     printf("ERROR: pthread\n");
-            //     return;
-            // }
+            pthread_t recv_msg_thread;
+            if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
+                printf("ERROR: pthread\n");
+                return;
+            }
             // sign_in = program_main(sockfd);
         }   
         fpurge(stdin);

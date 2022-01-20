@@ -325,6 +325,7 @@ void *client_handler(void *arg){
         }
         int tokenCount;
         char **data = words(buff, &tokenCount, "|\n");
+ 
         SignalState SIGNAL = data[tokenCount-1][0] - '0';
         switch(SIGNAL){ 
             case LOGIN_SIGNAL: {
@@ -351,8 +352,10 @@ void *client_handler(void *arg){
                         }
                     }else {
                         strcpy(response, USERNAME_WRONG);
+                        answer(clientfd, response, FAILED_SIGNAL);
+                        break;
                     }
-                    answer(clientfd, response, SUCCESS_SIGNAL);
+                    // answer(clientfd, response, SUCCESS_SIGNAL);
                     //send(clientfd, response, strlen(response), 0);
                     break;
                 } else {

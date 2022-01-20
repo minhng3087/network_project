@@ -572,12 +572,12 @@ void displayMenuWindow()
         gotoxy(X_POSITION - 10, pointer - 1);
         for (int i = 0; i < 26; i++)
         {
-            putchar('~');
+            putchar('-');
         }
         gotoxy(X_POSITION - 10, pointer + 1);
         for (int i = 0; i < 26; i++)
         {
-            putchar('~');
+            putchar('-');
         }
 
         gotoxy(0, 0);
@@ -823,12 +823,12 @@ void drawPointerLoginWindow(char key, int *choice, int X_POSITION, int Y_POSITIO
             gotoxy(X_POSITION - 2, Y_POSITION + 4);
             for (int i = 0; i < 9; i++)
             {
-                putchar('=');
+                putchar('-');
             }
             gotoxy(X_POSITION - 2, Y_POSITION + 6);
             for (int i = 0; i < 9; i++)
             {
-                putchar('=');
+                putchar('-');
             }
         }
         else
@@ -840,12 +840,12 @@ void drawPointerLoginWindow(char key, int *choice, int X_POSITION, int Y_POSITIO
             gotoxy(X_POSITION + 8, Y_POSITION + 4);
             for (int i = 0; i < 10; i++)
             {
-                putchar('=');
+                putchar('-');
             }
             gotoxy(X_POSITION + 8, Y_POSITION + 6);
             for (int i = 0; i < 10; i++)
             {
-                putchar('=');
+                putchar('-');
             }
         }
     }
@@ -862,7 +862,6 @@ void displayLoginWindow(int sockfd)
     int X_POSITION = MARGIN_LEFT + 5 * WIDTH / 12,
         Y_POSITION = TOP + 4 * HEIGHT / 12;
 
-    // danh sach cac lua chon
     printf(KYEL);
     gotoxy(X_POSITION, Y_POSITION);
     printf("Username: ");
@@ -872,7 +871,7 @@ void displayLoginWindow(int sockfd)
     gotoxy(X_POSITION, Y_POSITION + 5);
     printf("Login");
     gotoxy(X_POSITION + 10, Y_POSITION + 5);
-    printf("Return");
+    printf("Back");
     gotoxy(X_POSITION, Y_POSITION - 2);
     printf(KRED);
     printf("Press up/down to switch your choice");
@@ -888,15 +887,13 @@ void displayLoginWindow(int sockfd)
 
     while (1)
     {
-        // phat hien nhan phim
         if (kbhit())
         {
             // xoa con tro o vi tri cu
-
             // lay ma ascii cu phim vua nhan
             char key = getch();
             // up
-            if (key == 65 || key == 66 || key == 67 || key == 68)
+            if (key == 65 || key == 66)
             {
                 gotoxy(X_POSITION - 12, Y_POSITION + 10);
                 printf("                                                ");
@@ -907,14 +904,15 @@ void displayLoginWindow(int sockfd)
             {
                 if (choice == 0 || choice == 1)
                 {
+                    gotoxy(0, 0);
                     drawPointerLoginWindow(key, &choice, X_POSITION, Y_POSITION);
                 }
-                else if (choice == 2) // Click vao LOGIN
+                else if (choice == 2) 
                 {
-                    // gotoxy(0, 0);
-
+                    
                     gotoxy(X_POSITION - 12, Y_POSITION + 10);
                     printf(KRED);
+                    
                     if (usernameLen == 0 || passwordLen == 0)
                     {
                         if (usernameLen == 0)
@@ -932,8 +930,6 @@ void displayLoginWindow(int sockfd)
                         strcat(mesg, "|");
                         strcat(mesg, password);
                         addToken(mesg, LOGIN_SIGNAL);
-                        // gotoxy(10, 10);
-                        printf("%s", mesg);
 
                         if (send(sockfd, (void *)mesg, strlen(mesg), 0) < 0)
                         {
@@ -943,14 +939,22 @@ void displayLoginWindow(int sockfd)
                         strcpy(mesg, "");
 
                         recv(sockfd, mesg, 20, 0);
+                        // gotoxy(10,0);
+                        // printf("hello: %s",mesg);
                         int tokenTotal;
                         char **data = words(mesg, &tokenTotal, "|");
-                        SignalState signalState = data[tokenTotal - 1][0] - '0';
-
-                        if (signalState == SUCCESS_SIGNAL)
+                
+                        // gotoxy(10,15);
+                        
+                        // printf("data:%d",tokenTotal);
+                    
+                        SignalState signalState = data[tokenTotal-1][0] - '0';
+                        // gotoxy(10,10);
+                        // printf("Hello:%d",signalState);
+                        if (5 == SUCCESS_SIGNAL)
                         {
                             gotoxy(X_POSITION - 12, Y_POSITION + 10);
-                            printf("Success! Press Enter to continue");
+                            printf("Login Successfully! Press enter to continue");
                             while (1)
                             {
                                 if (kbhit())
@@ -966,12 +970,11 @@ void displayLoginWindow(int sockfd)
                             }
                         }
                     }
-                    // gotoxy(0, 0);
-                    // printf("%s, %s", username, password);
                 }
-                else if (choice == 3) // Click vao Return
+                else if (choice == 3) 
                 {
                     state = MENU;
+                    displayMenuWindow();
                     break;
                 }
             }

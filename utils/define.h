@@ -1,7 +1,7 @@
-#define WIDTH 120
-#define HEIGHT 60
+#define WIDTH 140
+#define HEIGHT 40
 #define TOP 4
-#define MARGIN_LEFT 4
+#define MARGIN_LEFT 6
 #define SIZE 1024
 
 #define KNRM  "\x1B[0m"
