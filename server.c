@@ -12,6 +12,8 @@
 #include <stdint.h>
 #include "file.h"
 #include "action.h"
+#include "utils/handle.h"
+
 
 extern l_user *head_user;
 extern l_stock *head_stock;
@@ -24,6 +26,15 @@ int temp_balance = 0;
 int temp_amount = 0;
 int sell_flag = 0;
 int count_same = 0;
+
+void answer(int confd, char *message, SignalState signal) {
+    char string[1000] = "";
+    strcat(string, message);
+    addToken(string, signal);
+    if (send(confd, string, strlen(string), 0) <= 0) {
+        printf("Error by send function\n");
+    };
+}
 
 void manage_profile_account(int clientfd, char username[MAX_CHAR]) {
     l_user *user =  get_account(username);
@@ -154,7 +165,7 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
 void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]) {
     char name_stock[MAX_CHAR], response[BUFFER_SIZE];
     int price, amount;
-     switch(sell_flag) {
+    switch(sell_flag) {
         case 0:
             strcpy(response, "\nInput name stock");
             sell_flag++;
@@ -217,8 +228,8 @@ void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]
                                 }
                                 // L15 100 5 => L15 100 4 -> add L15 100 1 to LL
                                 
-                                 l_stock* temp = create_stock(tmp->name_stock, amount, tmp->price);
-                                 add_stock(&head_stock, temp);
+                                l_stock* temp = create_stock(tmp->name_stock, amount, tmp->price);
+                                add_stock(&head_stock, temp);
 
                                 // if(search_stock == NULL) {
                                 //     add_stock(&(info->stock), temp);
@@ -245,7 +256,7 @@ void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]
                         write_node_to_overfile("file/oversold.txt", username, name_stock, price, amount);
                     }
                     if(count_same == 1) {
-                       append_one_stock_to_order_match(name_stock, price, amount2);
+                        append_one_stock_to_order_match(name_stock, price, amount2);
                     }
                     if(flag_delete == TRUE) {
                         delete_all_by_key_overbought(TRUE);
@@ -269,7 +280,6 @@ void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]
     send(clientfd, response, strlen(response), 0);
 }
 
-
 void order(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR], int check_action) {
     switch(check_action) {
         case 1:
@@ -285,6 +295,7 @@ void order(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR], int
             break;
     }
 }
+
 void *client_handler(void *arg){
     int clientfd, n, flag = 1, check = 0, buy = 0, sell = 0, flag_main,
         check_order = 0, check_action ;
@@ -312,33 +323,85 @@ void *client_handler(void *arg){
             check_order = 1;
             goto ORDER;
         }
-
+        int tokenCount;
+        char **data = words(buff, &tokenCount, "|\n");
+        SignalState SIGNAL = data[tokenCount-1][0] - '0';
+        switch(SIGNAL){ 
+            case LOGIN_SIGNAL: {
+                if (tokenCount == 3) {
+                    strcpy(username, data[0]);
+                    strcpy(password, data[1]);
+                    if(has_account(username) == TRUE) {
+                        int status = sign_in(username, password, clientfd);
+                        if(status == 1) {
+                            strcpy(response, LOGIN_SUCCESS);
+                            flag=3;
+                            answer(clientfd, response, SUCCESS_SIGNAL);
+                            break;
+                        }else if(status == 3) {
+                            strcpy(response, PASSWORD_WRONG);
+                            flag = 1;
+                            answer(clientfd, response, FAILED_SIGNAL);
+                            break;
+                        }else if(status == 2) {
+                            strcpy(response, ACCOUNT_BLOCK);
+                            flag = 1;
+                            answer(clientfd, response, FAILED_SIGNAL);
+                            break;
+                        }
+                    }else {
+                        strcpy(response, USERNAME_WRONG);
+                    }
+                    answer(clientfd, response, SUCCESS_SIGNAL);
+                    //send(clientfd, response, strlen(response), 0);
+                    break;
+                } else {
+                    printf("Error here");
+                }
+                break;
+			}
+            case REGISTER_SIGNAL: {
+                if (tokenCount == 3) {
+                    //head = signUp(head, confd, data[0], data[1]);
+                } else {
+                    // error
+                }
+                break;
+            }
+            case LOGOUT_SIGNAL:
+            case DISCONNECT_SIGNAL:
+            case MENU_SIGNAL:
+            case SUCCESS_SIGNAL:
+            case FAILED_SIGNAL:
+            case BET: break;
+            }
         switch(flag) {
             case 1:
-                strcpy(username, buff);
-                if(has_account(username) == TRUE) {
-                    flag++;
-                    strcpy(response, "Password");
-                }else {
-                    strcpy(response, USERNAME_WRONG);
-                }
-                send(clientfd, response, strlen(response), 0);
+                // strcpy(username, buff);
+                // if(has_account(username) == TRUE) {
+                //     flag++;
+                //     strcpy(response, "Password");
+                // }else {
+                //     strcpy(response, USERNAME_WRONG);
+                // }
+                // send(clientfd, response, strlen(response), 0);
                 break;
             case 2:
-                strcpy(password, buff);
-                int status = sign_in(username, password, clientfd);
-                if(status == 1) {
-                    strcpy(response, LOGIN_SUCCESS);
-                    // current_user = get_account(username);
-                    flag++;
-                }else if(status == 3) {
-                    strcpy(response, PASSWORD_WRONG);
-                    flag = 1;
-                }else if(status == 2) {
-                    strcpy(response, ACCOUNT_BLOCK);
-                    flag = 1;
-                }
-                send(clientfd, response, strlen(response), 0);
+                    // set sign in & password
+                // strcpy(password, buff);
+                // int status = sign_in(username, password, clientfd);
+                // if(status == 1) {
+                //     strcpy(response, LOGIN_SUCCESS);
+                //     // current_user = get_account(username);
+                //     flag++;
+                // }else if(status == 3) {
+                //     strcpy(response, PASSWORD_WRONG);
+                //     flag = 1;
+                // }else if(status == 2) {
+                //     strcpy(response, ACCOUNT_BLOCK);
+                //     flag = 1;
+                // }
+                // send(clientfd, response, strlen(response), 0);
                 break;  
             case 3: 
                 if(strcmp(buff, "direct") == 0) {
@@ -531,7 +594,7 @@ int create_server(int argc, char **argv) {
         exit(0);
     };
     memset(&servaddr, 0, sizeof(servaddr));
-      
+    
     servaddr.sin_family    = AF_INET; // IPv4
     servaddr.sin_addr.s_addr = inet_addr(LOCALHOST);
     servaddr.sin_port = htons(PORT);
