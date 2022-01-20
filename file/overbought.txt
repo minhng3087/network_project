@@ -24,3 +24,4 @@ long L02 10 2
 long L10 10 3
 nam 10 2 2
 long N02 10 2
+nam M2 200 1
