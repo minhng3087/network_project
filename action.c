@@ -19,6 +19,7 @@ l_user *create_user(int id, char username[MAX_CHAR], char password[MAX_CHAR], in
     temp->id = id;
     temp->balance = balance;
     temp->is_online = FALSE;
+    temp->is_trading = FALSE;
     temp->pass_incorrect = 0;
     temp->status = status;
     temp->next = NULL;
@@ -149,7 +150,7 @@ l_user* trade_user(char id[MAX_CHAR]) {
     l_user *tmp = head_user;
     char user_id[MAX_CHAR];
     while (tmp != NULL) {
-        if (tmp->is_online == TRUE) {
+        if (tmp->is_trading == TRUE) {
             snprintf(user_id, MAX_CHAR,"%d", tmp->id);
             if (strcmp(user_id, id) == 0) {
                 return tmp;
@@ -220,7 +221,7 @@ char* online_users(l_user *current_user) {
     char *str = malloc(sizeof(char));
     char user_id[MAX_CHAR];
     while (tmp != NULL) {
-        if (tmp->is_online == TRUE && tmp->id != current_user->id) {
+        if (tmp->is_trading == TRUE && tmp->id != current_user->id) {
             snprintf(user_id, MAX_CHAR,"%d", tmp->id);
             strcat(str, user_id);
             strcat(str, ". ");
@@ -545,11 +546,19 @@ void direct_buy(l_order *order, int clientfd) {
 
 void direct_sell(l_order *order, int clientfd) {
     l_user *tmp = head_user;
+    l_stock *stock_sell;
     while (tmp != NULL) {
         if (clientfd == tmp->clientfd) {
-            l_stock *stock_buy = search_stock_of_user(&tmp, order->stock_name, order->price);
-            if(stock_buy->amount == 0) {
-                delete_node_stock(tmp->stock,stock_buy);
+            l_stock* temp = tmp->stock;
+            while(temp != NULL) {
+                if(strcmp(temp->name, order->stock_name) == 0) {
+                    stock_sell = temp;
+                }
+                temp = temp->next;
+            }
+            stock_sell->amount -= order->amount;
+            if(stock_sell->amount == 0) {
+                delete_node_stock(tmp->stock,stock_sell);
             }
             tmp->balance += order->price * order->amount;
         }

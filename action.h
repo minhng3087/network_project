@@ -19,6 +19,7 @@ typedef struct user{
     int balance;
     int status;
     int is_online;
+    int is_trading;
     int pass_incorrect;
     l_stock *stock;
     struct user *next;

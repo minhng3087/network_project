@@ -47,7 +47,7 @@ void manage_profile_account(int clientfd, char username[MAX_CHAR]) {
 }
 
 void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]) {
-    pthread_mutex_lock(&lock);
+    // pthread_mutex_lock(&lock);
     char name_stock[MAX_CHAR], response[BUFFER_SIZE];
     int price, amount;
     switch(buy_flag) {
@@ -162,11 +162,11 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
             break;
     }
     send(clientfd, response, strlen(response), 0);
-     pthread_mutex_unlock(&lock);
+    // pthread_mutex_unlock(&lock);
 }
 
 void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]) {
-    pthread_mutex_lock(&lock);
+    // pthread_mutex_lock(&lock);
     char name_stock[MAX_CHAR], response[BUFFER_SIZE];
     int price, amount;
      switch(sell_flag) {
@@ -273,7 +273,7 @@ void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]
 
     }
     send(clientfd, response, strlen(response), 0);
-    pthread_mutex_unlock(&lock);
+    // pthread_mutex_unlock(&lock);
 }
 
 
@@ -353,6 +353,7 @@ void *client_handler(void *arg){
                 if(strcmp(buff, "direct") == 0) {
                     flag_main = 3;
                     current_user = get_current_user(clientfd);
+                    current_user->is_trading = TRUE;
                     DIRECT: 
                     if (strcmp(buff, "y") == 0 || strcmp(buff, "yes") == 0) {
                         strcpy(response, "Transaction succesfully!\n");
@@ -376,6 +377,8 @@ void *client_handler(void *arg){
                     } if (strcmp(buff, "q") == 0) {
                         flag_main = 0;
                         check = 0;
+                        get_current_user(list_trade[0])->is_trading = FALSE;
+                        get_current_user(list_trade[1])->is_trading = FALSE;
                         send(clientfd, "end", strlen("end"), 0);
                         continue;
                     } 
@@ -387,7 +390,7 @@ void *client_handler(void *arg){
                         char other_rep[MAX_CHAR];
                         l_user *tmp = head_user;
                         while (tmp != NULL) {
-                            if (tmp->is_online == TRUE && tmp->id != current_user->id) {
+                            if (tmp->is_trading == TRUE && tmp->id != current_user->id) {
                                 strcpy(other_rep, str);
                                 strcat(other_rep, online_users(tmp));
                                 send(tmp->clientfd, other_rep, strlen(other_rep), 0);
@@ -495,7 +498,7 @@ void *client_handler(void *arg){
                                     order_direct->user_id = current_user->id;
                                     order_direct->amount = atoi(amount);
                                     order_direct->price = atoi(price);
-                                    order_direct->type = 0;
+                                    order_direct->type = 1;
                                     head_order = order_direct;
                                     strcat(direct_order, target);
                                     send(trader->clientfd, direct_order, strlen(direct_order), 0);
