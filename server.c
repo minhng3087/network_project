@@ -163,11 +163,7 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
             break;
     }
     send(clientfd, response, strlen(response), 0);
-<<<<<<< HEAD
-    // pthread_mutex_unlock(&lock);
-=======
     //  pthread_mutex_unlock(&lock);
->>>>>>> 5df7caa9c0123aed28c2005d42ea8fca08ba97b6
 }
 
 void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]) {
