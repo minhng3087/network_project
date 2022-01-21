@@ -9,6 +9,7 @@ typedef enum {
 
   MENU_SIGNAL,
   SUCCESS_SIGNAL,
+  ORDER_BUY_SIGNAL,
   FAILED_SIGNAL,
   BET
 } SignalState;

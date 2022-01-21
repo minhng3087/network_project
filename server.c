@@ -56,36 +56,46 @@ void manage_profile_account(int clientfd, char username[MAX_CHAR]) {
 
 void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]) {
     char name_stock[MAX_CHAR], response[BUFFER_SIZE];
-    int price, amount;
+    char price_str[MAX_CHAR];
+    char amount_str[MAX_CHAR];
+    int price, amount, amount2;
+    int tokenCount;
+    char **data = words(request, &tokenCount, "|\n");
+    strcpy(name_stock, data[0]);
+    strcpy(price_str, data[1]);
+    strcpy(amount_str, data[2]);
+    amount = atoi(amount_str);
+    price = atoi(price_str);
     switch(buy_flag) {
+        // case 0:
+        //     strcpy(response, "Input name stock");
+        //     buy_flag++;
+        //     break;
+        // case 1:
+        //     strcpy(name_stock, request);
+        //     strcpy(response, "Input price");
+        //     buy_flag++;
+        //     break;
+        // case 2:
+        //     price = atoi(request);
+        //     strcpy(response, "Input amount");
+        //     buy_flag++;
+        //     break;
         case 0:
-            strcpy(response, "Input name stock");
-            buy_flag++;
-            break;
-        case 1:
-            strcpy(name_stock, request);
-            strcpy(response, "Input price");
-            buy_flag++;
-            break;
-        case 2:
-            price = atoi(request);
-            strcpy(response, "Input amount");
-            buy_flag++;
-            break;
-        case 3:
-            amount = atoi(request);
-            int amount2 = amount;
+           // amount = atoi(request);
+            amount2 = amount;
             l_user *info = get_account(username); //current_user
             if(info != NULL && info->balance < amount * price) {
-                strcpy(response, "Balance not enough");
-                strcpy(response, "Input price again");
-                buy_flag = 1;
+                strcpy(response, "Balance not enough! ");
+                strcat(response, "Input price again");
+                // buy_flag = 1;
             }else {
                 // case stock not exist in overbought.txt and price < price of stock => save to file overbought.txt
                 if(has_stock_in_oversold(name_stock) == FALSE) {
                     write_node_to_overfile("file/overbought.txt", username, name_stock, price, amount);
                     strcpy(response, "Order Match Success (1) !!!\n");
                     strcat(response, "Press q to quit");
+                    answer(clientfd, response, SUCCESS_SIGNAL);
                 }
                 // case stock exist in overbought.txt
                 else {
@@ -139,7 +149,7 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
                         write_node_to_overfile("file/overbought.txt", username, name_stock, price, amount);
                     }
                     if(count_same == 1) {
-                       append_one_stock_to_order_match(name_stock, price, amount2);
+                        append_one_stock_to_order_match(name_stock, price, amount2);
                     }
                     if(flag_delete == TRUE) {
                         delete_all_by_key(TRUE);
@@ -153,13 +163,14 @@ void buy_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR])
                     strcat(response, "Press q to quit");
                     // reset
                     count_same = 0;
-                    buy_flag = 1;
+                    buy_flag = 0;
                     flag_delete = FALSE;
                 }
             }
             break;
     }
-    send(clientfd, response, strlen(response), 0);
+    answer(clientfd, response, SUCCESS_SIGNAL);
+   // send(clientfd, response, strlen(response), 0);
 }
 
 void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]) {
@@ -283,7 +294,7 @@ void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]
 void order(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR], int check_action) {
     switch(check_action) {
         case 1:
-            // buy_stock(clientfd, request, username);
+            buy_stock(clientfd, request, username);
             break;
         case 2: 
             sell_stock(clientfd, request, username);
@@ -309,20 +320,20 @@ void *client_handler(void *arg){
         buff[n] = '\0';
         if (buff[strlen(buff) - 1] == '\n')
             buff[strlen(buff) - 1] = 0;
-        printf("String received from client: %s\n", buff);
+            printf("String received from client: %s\n", buff);
         if(strlen(buff) == 0) {
             printf("bye %d\n", clientfd);
             close(clientfd);
             return 0;
         }
-        if(flag_main == 3) {
-            goto DIRECT;
-        }else if(flag_main == 4) {
-            goto MANAGE;
-        }else if(flag_main == 2) {
-            check_order = 1;
-            goto ORDER;
-        }
+        // if(flag_main == 3) {
+        //     goto DIRECT;
+        // }else if(flag_main == 4) {
+        //     goto MANAGE;
+        // }else if(flag_main == 2) {
+        //     check_order = 1;
+        //     goto ORDER;
+        // }
         int tokenCount;
         char **data = words(buff, &tokenCount, "|\n");
     
@@ -355,8 +366,6 @@ void *client_handler(void *arg){
                         answer(clientfd, response, FAILED_SIGNAL);
                         break;
                     }
-                    // answer(clientfd, response, SUCCESS_SIGNAL);
-                    //send(clientfd, response, strlen(response), 0);
                     break;
                 } else {
                     printf("Error here");
@@ -368,6 +377,20 @@ void *client_handler(void *arg){
                     //head = signUp(head, confd, data[0], data[1]);
                 } else {
                     // error
+                }
+                break;
+            }
+            case ORDER_BUY_SIGNAL: {
+                if (tokenCount == 4) {
+                    // strcpy(stock_name, data[0]);
+                    // strcpy(price, data[1]);
+                    // strcpy(amount, data[2]);
+                    // strcpy(buff, "B");
+                    check_action = 1;
+                    order(clientfd, buff, username, check_action);
+                    break;
+                } else {
+                    printf("Error here");
                 }
                 break;
             }

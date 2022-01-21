@@ -19,6 +19,8 @@
 #include "drawUtils.h"
 #include "handle.h"
 
+int fd;
+
 int kbhit(void)
 {
     struct termios oldt, newt;
@@ -171,111 +173,6 @@ void printText(char *str, int top, int left, int right)
                 break;
             }
         }
-    }
-}
-
-void drawSelectMenu()
-{
-    system("clear");
-    drawBorder();
-
-    int X_POSITION = MARGIN_LEFT + 5 * WIDTH / 12,
-        Y_POSITION = TOP + 5 * HEIGHT / 12;
-
-    printf(KWHT);
-    gotoxy(X_POSITION, Y_POSITION);
-    printf("Xem bảng điện");
-    gotoxy(X_POSITION, Y_POSITION + 2);
-    printf("Đặt lệnh");
-    gotoxy(X_POSITION, Y_POSITION + 4);
-    printf("Giao dịch trực tiếp");
-    gotoxy(X_POSITION, Y_POSITION + 6);
-    printf("Quản lí tài khoản");
-    gotoxy(X_POSITION, Y_POSITION + 8);
-    printf("Quit");
-
-    int pointer = Y_POSITION;
-    printf(KYEL);
-
-    while (state == MENU)
-    {
-        sleep(0.3);
-        // phat hien nhan phim
-        if (kbhit())
-        {
-            // xoa con tro o vi tri cu
-            // gotoxy(X_POSITION - 3, pointer);
-            // printf("  ");
-            gotoxy(X_POSITION - 10, pointer);
-            putchar(' ');
-            gotoxy(X_POSITION + 15, pointer);
-            putchar(' ');
-            gotoxy(X_POSITION - 10, pointer - 1);
-            for (int i = 0; i < 26; i++)
-            {
-                putchar(' ');
-            }
-            gotoxy(X_POSITION - 10, pointer + 1);
-            for (int i = 0; i < 26; i++)
-            {
-                putchar(' ');
-            }
-            // lay ma ascii cu phim vua nhan
-            char key = getch();
-            // up
-            if (key == 65)
-            {
-                if (pointer == Y_POSITION)
-                {
-                    // neu con tro dang o vi tri cao nhat thi chuyen xuong cuoi
-                    pointer = Y_POSITION + 4;
-                }
-                else
-                {
-                    pointer -= 2;
-                }
-            }
-            // down
-            else if (key == 66)
-            {
-                if (pointer == Y_POSITION + 4)
-                {
-                    // neu dang o duoi cung thi chuyen len tren
-                    pointer = Y_POSITION;
-                }
-                else
-                {
-                    pointer += 2;
-                }
-            }
-            // Enter
-            else if (key == 10)
-            {
-                state = (pointer - Y_POSITION) / 2 + 1;
-            }
-        }
-
-        printf(KYEL);
-
-        gotoxy(X_POSITION - 10, pointer);
-        putchar('|');
-        gotoxy(X_POSITION + 15, pointer);
-        putchar('|');
-        gotoxy(X_POSITION - 10, pointer - 1);
-        for (int i = 0; i < 26; i++)
-        {
-            putchar('-');
-        }
-        gotoxy(X_POSITION - 10, pointer + 1);
-        for (int i = 0; i < 26; i++)
-        {
-            putchar('-');
-        }
-
-        gotoxy(0, 0);
-        printf(KWHT);
-        printf("      ");
-        gotoxy(0, 0);
     }
 }
 
@@ -566,18 +463,18 @@ void displayMenuWindow()
         printf(KBLU);
 
         gotoxy(X_POSITION - 10, pointer);
-        putchar('|');
+        putchar(' ');
         gotoxy(X_POSITION + 15, pointer);
-        putchar('|');
+        putchar(' ');
         gotoxy(X_POSITION - 10, pointer - 1);
         for (int i = 0; i < 26; i++)
         {
-            putchar('~');
+            putchar(' ');
         }
         gotoxy(X_POSITION - 10, pointer + 1);
         for (int i = 0; i < 26; i++)
         {
-            putchar('~');
+            putchar(' ');
         }
 
         gotoxy(0, 0);
@@ -819,7 +716,7 @@ void displayBuyMethodWindow(int sockfd){
                         if (send(sockfd, (void *)mesg, strlen(mesg), 0) < 0)
                         {
                             gotoxy(0, 0);
-                            printf("error");
+                            printf("Error");
                         };
                         strcpy(mesg, "");
                             gotoxy(0, 0);
@@ -832,7 +729,7 @@ void displayBuyMethodWindow(int sockfd){
                         if (5 == SUCCESS_SIGNAL)
                         {
                             gotoxy(X_POSITION - 12, Y_POSITION + 15);
-                            printf("Order Successfully! Press Enter to continue");
+                            printf("Order Match Success (1) !!! Press Enter to continue");
                             while (1)
                             {
                                 if (kbhit())
@@ -976,8 +873,8 @@ void displayOrderWindow(int sockfd){
                 choice = (pointer - Y_POSITION) / 2;
                 gotoxy(0,0);
                 printf("choice: %d ", choice);
-                 printf("pointer: %d ", pointer);
-                 printf("y: %d ", Y_POSITION);
+                printf("pointer: %d ", pointer);
+                printf("y: %d ", Y_POSITION);
                 if (choice == 0) {
                     displayBuyMethodWindow(sockfd);
                 }
@@ -1133,8 +1030,6 @@ void displayMainMenuWindow(int sockfd)
 
 void drawPointerLoginWindow(char key, int *choice, int X_POSITION, int Y_POSITION)
 {
-    gotoxy(0, 0);
-    printf("choice: %d", (*choice));
     if ((*choice) == 0 || (*choice) == 1)
     {
         gotoxy(X_POSITION - 4, Y_POSITION + 2 * (*choice));
@@ -1188,6 +1083,8 @@ void drawPointerLoginWindow(char key, int *choice, int X_POSITION, int Y_POSITIO
         {
             (*choice)--;
         }
+        gotoxy(5, 0);
+        printf("choice up: %d", (*choice));
     }
     // down
     else if (key == 66 || key == 67 || key == 10)
@@ -1201,6 +1098,8 @@ void drawPointerLoginWindow(char key, int *choice, int X_POSITION, int Y_POSITIO
         {
             (*choice)++;
         }
+        gotoxy(0, 5);
+        printf("choice down: %d", (*choice));
     }
     printf(KYEL);
     if ((*choice) == 0 || (*choice) == 1)
@@ -1252,6 +1151,7 @@ void drawPointerLoginWindow(char key, int *choice, int X_POSITION, int Y_POSITIO
 
 void displayLoginWindow(int sockfd)
 {
+    fd = sockfd;
     clearScreen();
     drawBorder();
 
@@ -1296,11 +1196,13 @@ void displayLoginWindow(int sockfd)
             // Enter
             else if (key == 10)
             {
+                gotoxy(0, 10);
+                printf("choice enter: %d", (choice));
                 if (choice == 0 || choice == 1)
                 {
                     drawPointerLoginWindow(key, &choice, X_POSITION, Y_POSITION);
                 }
-                else if (choice == 2)  // when on login 
+                else if (choice == 2)  
                 {
                     // gotoxy(0, 0);
                     gotoxy(X_POSITION - 12, Y_POSITION + 10);
@@ -1326,21 +1228,30 @@ void displayLoginWindow(int sockfd)
                         // gotoxy(10, 10);
                         // printf("%s", mesg);
 
-                        if (send(sockfd, (void *)mesg, strlen(mesg), 0) < 0)
+                        if (send(sockfd, mesg, strlen(mesg), 0) < 0)
                         {
                             gotoxy(0, 0);
                             printf("error");
                         };
-                        strcpy(mesg, "");
-                            gotoxy(0, 0);
-                            printf("Check");
-                        recv(sockfd, mesg, 1000, 0);
-                        //int tokenTotal;
-                        //char **data = words(mesg, &tokenTotal, "|");
-                        //SignalState signalState = data[tokenTotal - 1][0] - '0';
+                            //strcpy(mesg, "");
+                            // gotoxy(0, 0);
+                            // printf("Check\n");
+                            recv(sockfd, mesg, 1000, 0);
+                            // gotoxy(0, 5);
+                            // printf("Check2");
+                        int tokenTotal;
+                        char **data = words(mesg, &tokenTotal, "|");
+                        SignalState signalState = data[tokenTotal - 1][0] - '0';
+                        // gotoxy(0, 5);
+                        // printf("state: %d", signalState);
 
-                        if (5 == SUCCESS_SIGNAL)
+                        if (signalState == SUCCESS_SIGNAL)
                         {
+                            // pthread_t recv_msg_thread;
+                            // if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
+                            //     printf("ERROR: pthread\n");
+                            //     return;
+                            // }
                             gotoxy(X_POSITION - 12, Y_POSITION + 10);
                             printf("Success! Press Enter to continue");
                             while (1)
@@ -1350,7 +1261,6 @@ void displayLoginWindow(int sockfd)
                                     char key3 = getch();
                                     if (key3 == 10)
                                     {
-                                        clearScreen();
                                         displayMainMenuWindow(sockfd);
                                         return;
                                     }

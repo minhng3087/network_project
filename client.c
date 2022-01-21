@@ -161,11 +161,11 @@ void login() {
    // int sign_in = 0;
     int choice;
     state = 0; 
-            pthread_t recv_msg_thread;
-            if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
-                printf("ERROR: pthread\n");
-                return;
-            }
+            // pthread_t recv_msg_thread;
+            // if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
+            //     printf("ERROR: pthread\n");
+            //     return;
+            // }
             while (1){
                 if (state == MENU){
                     displayMenuWindow();
