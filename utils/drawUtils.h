@@ -3,7 +3,7 @@ int kbhit(void);
 int getch(void);
 
 void gotoxy(int x, int y);
-void delay(int seconds); // delay (tham so truyen vao la so ms delay)
+void delay(int seconds); 
 char *readFile(char *filename);
 
 void clearRect(int start_x, int start_y, int end_x, int end_y); 
@@ -17,7 +17,10 @@ void testDraw();
 void displayMenuWindow(); 
 void displayLoginWindow(int sockfd); 
 void displaySignUpWindow(int sockfd); 
-void drawReadyPage();
+void displayMainMenuWindow(int sockfd);
+void displayOrderWindow(int sockfd);
+void displayBuyMethodWindow(int sockfd);
+void displaySellMethodWindow(int sockfd);
 
 void returnMenu();
 

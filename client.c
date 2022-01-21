@@ -158,10 +158,9 @@ int program_main() {
 
 void login() {
     char sendline[BUFFER], recvline[BUFFER];
-    int sign_in = 0;
+   // int sign_in = 0;
     int choice;
     state = 0; 
-        if (sign_in == 0) {
             pthread_t recv_msg_thread;
             if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
                 printf("ERROR: pthread\n");
@@ -172,75 +171,40 @@ void login() {
                     displayMenuWindow();
                 }
                 if (state == LOGIN){
-                    displayLoginWindow(1);
+                    displayLoginWindow(sockfd);
                 }
                 if (state == SIGN_UP){
-                    displaySignUpWindow(1);
+                    displaySignUpWindow(sockfd);
                 }
                 if (state == QUIT){
                     quit();
                     break;
             }
         }
-        //   menu_login();
-        }else if (sign_in == 1) {
-            // pthread_t recv_msg_thread;
-            // if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
-            //     printf("ERROR: pthread\n");
-            //     return;
-            // }
-            // sign_in = program_main(sockfd);
-        }   
-        fpurge(stdin);
-        scanf("%d", &choice);
-        switch (choice) {
-            case 1: 
-                printf("_________________Đăng nhập__________________\n");
-                printf("Username: ");
-                fpurge(stdin);
-                send_request(sendline, recvline);
-                printf("%s\n", recvline);
-                if (strcmp(recvline, USERNAME_WRONG) != 0) {
-                    fpurge(stdin);
-                    send_request(sendline, recvline);
-                    printf("%s\n", recvline);
-                    sign_in = strcmp(recvline, LOGIN_SUCCESS) == 0 ? 1 : 0;
-                }
-                break;
-            case 2:
-                printf("_________________Đăng ký__________________\n");
-                break;
-            default: 
-                break;
-        }
+        // fpurge(stdin);
+        // scanf("%d", &choice);
+        // switch (choice) {
+        //     case 1: 
+        //         printf("_________________Đăng nhập__________________\n");
+        //         printf("Username: ");
+        //         fpurge(stdin);
+        //         send_request(sendline, recvline);
+        //         printf("%s\n", recvline);
+        //         if (strcmp(recvline, USERNAME_WRONG) != 0) {
+        //             fpurge(stdin);
+        //             send_request(sendline, recvline);
+        //             printf("%s\n", recvline);
+        //             sign_in = strcmp(recvline, LOGIN_SUCCESS) == 0 ? 1 : 0;
+        //         }
+        //         break;
+        //     case 2:
+        //         printf("_________________Đăng ký__________________\n");
+        //         break;
+        //     default: 
+        //         break;
+        // }
 }
-    
 
-
-// void menu(){
-//     state = 0; 
-//     displayMenuWindow();
-//     while (1)
-//     {
-//         if (state == MENU)
-//         {
-//             displayMenuWindow();
-//         }
-//         if (state == LOGIN)
-//         {
-//             displayLoginWindow(1);
-//         }
-//         if (state == SIGN_UP)
-//         {
-//             displaySignUpWindow(1);
-//         }
-//         if (state == QUIT)
-//         {
-//             quit();
-//             break;
-//         }
-//     }
-// }
 
 int main(int argc, char **argv) {
     char ip[MAX_CHAR];
