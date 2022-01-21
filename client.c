@@ -48,7 +48,7 @@ int direct_transaction(){
     printf("_________________Giao dịch trực tiếp__________________\n");
     
     while(1){ 
-        __fpurge(stdin);
+        fpurge(stdin);
         fgets(sendline, BUFFER, stdin);
         send(sockfd, sendline, strlen(sendline), 0);
     }
@@ -69,7 +69,7 @@ int board() {
     //     printf("%s\n", recvline);
     // }
     while(1){ 
-        __fpurge(stdin);
+        fpurge(stdin);
         fgets(sendline, BUFFER, stdin);
         send(sockfd, sendline, strlen(sendline), 0);
     }
@@ -79,7 +79,7 @@ int board() {
 int order(){
     char sendline[BUFFER];
     while(1){ 
-        __fpurge(stdin);
+        fpurge(stdin);
         fgets(sendline, BUFFER, stdin);
         send(sockfd, sendline, strlen(sendline), 0);
         if (strcmp(sendline, "q\n") == 0) {
@@ -93,7 +93,7 @@ int manage_profile_account(){
     char sendline[BUFFER];
     printf("_________________Quan ly tai khoan__________________\n");
     while(1){ 
-        __fpurge(stdin);
+        fpurge(stdin);
         fgets(sendline, BUFFER, stdin);
         send(sockfd, sendline, strlen(sendline), 0);
         if (strcmp(sendline, "q\n") == 0) {
@@ -108,7 +108,7 @@ int program_main() {
     int n, choice_order;
     while (1) {
         menu_main();
-        __fpurge(stdin);
+        fpurge(stdin);
         fgets(choice_main, 2, stdin);
         int check = choice_main[0] - '0';
 
@@ -172,17 +172,17 @@ void login() {
             goto MENU;
         }   
        
-        __fpurge(stdin);
+        fpurge(stdin);
         scanf("%d", &choice);
         switch (choice) {
             case 1: 
                 printf("_________________Đăng nhập__________________\n");
                 printf("Username: ");
-                __fpurge(stdin);
+                fpurge(stdin);
                 send_request(sendline, recvline);
                 printf("%s\n", recvline);
                 if (strcmp(recvline, USERNAME_WRONG) != 0) {
-                    __fpurge(stdin);
+                    fpurge(stdin);
                     send_request(sendline, recvline);
                     printf("%s\n", recvline);
                     sign_in = strcmp(recvline, LOGIN_SUCCESS) == 0 ? 1 : 0;
