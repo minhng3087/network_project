@@ -18,5 +18,6 @@ enum state
     MENU,
     LOGIN,
     SIGN_UP,
+    MAIN_MENU,
     QUIT
 } state;

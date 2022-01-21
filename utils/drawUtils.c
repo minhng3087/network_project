@@ -18,8 +18,8 @@
 #include "define.h"
 #include "drawUtils.h"
 #include "handle.h"
-
-int fd;
+#define BUFFER 200
+char username[20], password[20];
 
 int kbhit(void)
 {
@@ -921,7 +921,9 @@ void displayMainMenuWindow(int sockfd)
 
     int X_POSITION = MARGIN_LEFT + 5 * WIDTH / 12,
         Y_POSITION = TOP + 5 * HEIGHT / 12;
-
+    printf(KGRN);
+    gotoxy(X_POSITION, Y_POSITION-5);
+    printf("🐶🐶🐶🐶🐶Welcome %s🐶🐶🐶🐶🐶", username);
     printf(KWHT);
     gotoxy(X_POSITION, Y_POSITION);
     printf("Xem bảng điện");
@@ -1083,8 +1085,6 @@ void drawPointerLoginWindow(char key, int *choice, int X_POSITION, int Y_POSITIO
         {
             (*choice)--;
         }
-        gotoxy(5, 0);
-        printf("choice up: %d", (*choice));
     }
     // down
     else if (key == 66 || key == 67 || key == 10)
@@ -1098,8 +1098,6 @@ void drawPointerLoginWindow(char key, int *choice, int X_POSITION, int Y_POSITIO
         {
             (*choice)++;
         }
-        gotoxy(0, 5);
-        printf("choice down: %d", (*choice));
     }
     printf(KYEL);
     if ((*choice) == 0 || (*choice) == 1)
@@ -1151,7 +1149,6 @@ void drawPointerLoginWindow(char key, int *choice, int X_POSITION, int Y_POSITIO
 
 void displayLoginWindow(int sockfd)
 {
-    fd = sockfd;
     clearScreen();
     drawBorder();
 
@@ -1178,7 +1175,7 @@ void displayLoginWindow(int sockfd)
     gotoxy(X_POSITION - 4, Y_POSITION);
     printf("\u27A4");
 
-    char username[20], password[20], mesg[40];
+    char mesg[40];
     int usernameLen = 0, passwordLen = 0;
 
     while (1)
@@ -1196,8 +1193,6 @@ void displayLoginWindow(int sockfd)
             // Enter
             else if (key == 10)
             {
-                gotoxy(0, 10);
-                printf("choice enter: %d", (choice));
                 if (choice == 0 || choice == 1)
                 {
                     drawPointerLoginWindow(key, &choice, X_POSITION, Y_POSITION);
@@ -1227,7 +1222,6 @@ void displayLoginWindow(int sockfd)
                         addToken(mesg, LOGIN_SIGNAL);
                         // gotoxy(10, 10);
                         // printf("%s", mesg);
-
                         if (send(sockfd, mesg, strlen(mesg), 0) < 0)
                         {
                             gotoxy(0, 0);
@@ -1244,14 +1238,8 @@ void displayLoginWindow(int sockfd)
                         SignalState signalState = data[tokenTotal - 1][0] - '0';
                         // gotoxy(0, 5);
                         // printf("state: %d", signalState);
-
                         if (signalState == SUCCESS_SIGNAL)
                         {
-                            // pthread_t recv_msg_thread;
-                            // if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
-                            //     printf("ERROR: pthread\n");
-                            //     return;
-                            // }
                             gotoxy(X_POSITION - 12, Y_POSITION + 10);
                             printf("Success! Press Enter to continue");
                             while (1)
@@ -1261,6 +1249,7 @@ void displayLoginWindow(int sockfd)
                                     char key3 = getch();
                                     if (key3 == 10)
                                     {
+                                        //stage = MAIN_MENU;
                                         displayMainMenuWindow(sockfd);
                                         return;
                                     }

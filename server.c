@@ -386,6 +386,7 @@ void *client_handler(void *arg){
                     // strcpy(price, data[1]);
                     // strcpy(amount, data[2]);
                     // strcpy(buff, "B");
+                    printf("data: %s\n", buff);
                     check_action = 1;
                     order(clientfd, buff, username, check_action);
                     break;

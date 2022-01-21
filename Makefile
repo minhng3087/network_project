@@ -24,7 +24,7 @@ action.o: action.c
 menu.o: menu.c
 	${CC} ${CFLAGS} menu.c 
 
-drawUtils.o: utils/drawUtils.c
+drawUtils.o: utils/drawUtils.c 
 	${CC} ${CFLAGS} utils/drawUtils.c
 
 handle.o: utils/handle.c 
