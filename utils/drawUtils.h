@@ -18,10 +18,12 @@ void displayLoginWindow(int sockfd);
 void displaySignUpWindow(int sockfd); 
 void displayMainMenuWindow(int sockfd);
 void displayOrderWindow(int sockfd);
+void displayAccountInfoWindow(int sockfd, char username[1024]);
 void displayBuyMethodWindow(int sockfd);
 void displaySellMethodWindow(int sockfd);
 void drawPointerLoginWindow(char key, int *choice, int X_POSITION, int Y_POSITION);
 void drawPointerBuyMethodWindow(char key, int *choice, int X_POSITION, int Y_POSITION);
+void drawPointerSellMethodWindow(char key, int *choice, int X_POSITION, int Y_POSITION);
 void drawPointerSignUpPage(char key, int *choice, int X_POSITION, int Y_POSITION);
 
 void returnMenu();

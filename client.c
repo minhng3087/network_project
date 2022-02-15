@@ -18,8 +18,8 @@ void send_request(char sendline[BUFFER], char recvline[BUFFER]) {
         recvline[strlen(recvline) - 1] = 0;
 }
 void str_overwrite_stdout() {
-  printf("%s", "> ");
-  fflush(stdout);
+    printf("%s", "> ");
+    fflush(stdout);
 }
 
 void add_token(char str[BUFFER], char header[BUFFER]) {
@@ -59,7 +59,7 @@ int direct_transaction(){
     printf("_________________Giao dịch trực tiếp__________________\n");
     
     while(1){ 
-        __fpurge(stdin);
+        fpurge(stdin);
         fgets(sendline, BUFFER, stdin);
         send(sockfd, sendline, strlen(sendline), 0);
         if (strcmp(sendline, "q\n") == 0) {
@@ -78,12 +78,12 @@ int board() {
     //     recvline[strlen(recvline) - 1] = 0;
     // printf("%s\n", recvline);
     // while(1){ 
-    //     __fpurge(stdin);
+    //     fpurge(stdin);
     //     send_request(sendline, recvline);
     //     printf("%s\n", recvline);
     // }
     while(1){ 
-        __fpurge(stdin);
+        fpurge(stdin);
         fgets(sendline, BUFFER, stdin);
         send(sockfd, sendline, strlen(sendline), 0);
     }
@@ -92,7 +92,7 @@ int board() {
 
 int order(){
     while(1){ 
-        __fpurge(stdin);
+        fpurge(stdin);
         fgets(sendline, BUFFER, stdin);
         send(sockfd, sendline, strlen(sendline), 0);
         if (strcmp(sendline, "q\n") == 0) {
@@ -105,7 +105,7 @@ int order(){
 int manage_profile_account(){
     printf("_________________Quan ly tai khoan__________________\n");
     while(1){ 
-        __fpurge(stdin);
+        fpurge(stdin);
         fgets(sendline, BUFFER, stdin);
         send(sockfd, sendline, strlen(sendline), 0);
         if (strcmp(sendline, "q\n") == 0) {
@@ -125,8 +125,8 @@ int program_main() {
             printf("ERROR: pthread\n");
             return EXIT_FAILURE;
         }
-       
-        __fpurge(stdin);
+        
+        fpurge(stdin);
         fgets(choice_main, 2, stdin);
         int check = choice_main[0] - '0';
 

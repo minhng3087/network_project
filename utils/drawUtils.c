@@ -18,8 +18,11 @@
 #include "define.h"
 #include "drawUtils.h"
 #include "handle.h"
+#include "../action.h"
 #define BUFFER 200
 char username[20], password[20];
+extern l_user *head_user;
+extern l_stock *head_stock;
 
 int kbhit(void)
 {
@@ -393,13 +396,14 @@ void displayMenuWindow()
     int X_POSITION = MARGIN_LEFT + 5 * WIDTH / 12,
         Y_POSITION = TOP + 5 * HEIGHT / 12;
 
-    printf(KWHT);
-    gotoxy(X_POSITION, Y_POSITION);
-    printf("LOGIN");
-    gotoxy(X_POSITION, Y_POSITION + 5);
-    printf("SIGN UP");
-    gotoxy(X_POSITION, Y_POSITION + 10);
-    printf("QUIT");
+    printf(KGRN);
+    gotoxy(X_POSITION, Y_POSITION - 15);
+    printf("🌟 LOGIN 🌟");
+    gotoxy(X_POSITION - 1, Y_POSITION - 10);
+    printf("🌟 SIGN UP 🌟");
+    printf(KRED);
+    gotoxy(X_POSITION, Y_POSITION - 5);
+    printf("🌟 QUIT 🌟");
 
     int pointer = Y_POSITION;
     printf(KGRN);
@@ -486,6 +490,7 @@ void displayMenuWindow()
 
 void getInput(char key, char *str, int maxlen, int *index, int X_POSITION, int Y_POSITION)
 {
+    int check_pwd = 0;
     if (key == 127)
     {
         // del 1 ky tu
@@ -493,6 +498,9 @@ void getInput(char key, char *str, int maxlen, int *index, int X_POSITION, int Y
         {
             str[--(*index)] = '\0';
         }
+    }
+    if (str[0] == '1') {
+        check_pwd = 1;
     }
     if ((*index) < maxlen)
     {
@@ -503,8 +511,49 @@ void getInput(char key, char *str, int maxlen, int *index, int X_POSITION, int Y
             str[(*index)] = '\0';
 
             printf(KWHT);
-            gotoxy(X_POSITION + 10, Y_POSITION);
-            printf("%s", str);
+            gotoxy(X_POSITION + 2, Y_POSITION);
+            if (check_pwd == 1){
+                for (int i = 0; i < strlen(str); i++){
+                    printf("\u2022");
+                }
+            } else {
+                printf("%s", str);
+            }
+        }
+    }
+}
+
+void getInputForMethod(char key, char *str, int maxlen, int *index, int X_POSITION, int Y_POSITION)
+{
+    int check_pwd = 0;
+    if (key == 127)
+    {
+        // del 1 ky tu
+        if ((*index) > 0)
+        {
+            str[--(*index)] = '\0';
+        }
+    }
+    if (str[0] == '1') {
+        check_pwd = 1;
+    }
+    if ((*index) < maxlen)
+    {
+
+        if ((key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z') || (key >= '0' && key <= '9'))
+        {
+            str[(*index)++] = key;
+            str[(*index)] = '\0';
+
+            printf(KWHT);
+            gotoxy(X_POSITION + 4, Y_POSITION);
+            if (check_pwd == 1){
+                for (int i = 0; i < strlen(str); i++){
+                    printf("\u2022");
+                }
+            } else {
+                printf("%s", str);
+            }
         }
     }
 }
@@ -514,41 +563,41 @@ void drawPointerBuyMethodWindow(char key, int *choice, int X_POSITION, int Y_POS
     printf("choice: %d", (*choice));
     if ((*choice) == 0 || (*choice) == 1 || (*choice) == 2)
     {
-        gotoxy(X_POSITION - 2, Y_POSITION + 2 * (*choice));
+        gotoxy(X_POSITION - 15, Y_POSITION + 2 * (*choice));
         printf("  ");
     }
     else
     {
         if ((*choice) == 3)
         {
-            gotoxy(X_POSITION - 2, Y_POSITION + 5);
+            gotoxy(X_POSITION - 8, Y_POSITION + 6);
             putchar(' ');
-            gotoxy(X_POSITION + 6, Y_POSITION + 5);
+            gotoxy(X_POSITION + 2, Y_POSITION + 6);
             putchar(' ');
-            gotoxy(X_POSITION - 2, Y_POSITION + 4);
-            for (int i = 0; i < 9; i++)
+            gotoxy(X_POSITION - 8, Y_POSITION + 5);
+            for (int i = 0; i < 11; i++)
             {
                 putchar(' ');
             }
-            gotoxy(X_POSITION - 2, Y_POSITION + 6);
-            for (int i = 0; i < 9; i++)
+            gotoxy(X_POSITION - 8, Y_POSITION + 7);
+            for (int i = 0; i < 11; i++)
             {
                 putchar(' ');
             }
         }
         else
         {
-            gotoxy(X_POSITION + 8, Y_POSITION + 5);
+            gotoxy(X_POSITION + 6, Y_POSITION + 6);
             putchar(' ');
-            gotoxy(X_POSITION + 17, Y_POSITION + 5);
+            gotoxy(X_POSITION + 14, Y_POSITION + 6);
             putchar(' ');
-            gotoxy(X_POSITION + 8, Y_POSITION + 4);
-            for (int i = 0; i < 10; i++)
+            gotoxy(X_POSITION + 6, Y_POSITION + 5);
+            for (int i = 0; i < 9; i++)
             {
                 putchar(' ');
             }
-            gotoxy(X_POSITION + 8, Y_POSITION + 6);
-            for (int i = 0; i < 10; i++)
+            gotoxy(X_POSITION + 6, Y_POSITION + 7);
+            for (int i = 0; i < 9; i++)
             {
                 putchar(' ');
             }
@@ -581,41 +630,41 @@ void drawPointerBuyMethodWindow(char key, int *choice, int X_POSITION, int Y_POS
     printf(KYEL);
     if ((*choice) == 0 || (*choice) == 1 || (*choice) == 2)
     {
-        gotoxy(X_POSITION - 4, Y_POSITION + 2 * (*choice));
+        gotoxy(X_POSITION - 15, Y_POSITION + 2 * (*choice));
         printf("\u27A4");
     }
     else
     {
         if ((*choice) == 3)
         {
-            gotoxy(X_POSITION - 2, Y_POSITION + 7);
+            gotoxy(X_POSITION - 8, Y_POSITION + 6);
             putchar('|');
-            gotoxy(X_POSITION + 6, Y_POSITION + 7);
+            gotoxy(X_POSITION + 2, Y_POSITION + 6);
             putchar('|');
-            gotoxy(X_POSITION - 2, Y_POSITION + 6);
-            for (int i = 0; i < 9; i++)
+            gotoxy(X_POSITION - 8, Y_POSITION + 5);
+            for (int i = 0; i < 11; i++)
             {
                 putchar('=');
             }
-            gotoxy(X_POSITION - 2, Y_POSITION + 8);
-            for (int i = 0; i < 9; i++)
+            gotoxy(X_POSITION - 8, Y_POSITION + 7);
+            for (int i = 0; i < 11; i++)
             {
                 putchar('=');
             }
         }
         else
         {
-            gotoxy(X_POSITION + 8, Y_POSITION + 7);
+            gotoxy(X_POSITION + 6, Y_POSITION + 6);
             putchar('|');
-            gotoxy(X_POSITION + 17, Y_POSITION + 7);
+            gotoxy(X_POSITION + 14, Y_POSITION + 6);
             putchar('|');
-            gotoxy(X_POSITION + 8, Y_POSITION + 6);
-            for (int i = 0; i < 10; i++)
+            gotoxy(X_POSITION + 6, Y_POSITION + 5);
+            for (int i = 0; i < 9; i++)
             {
                 putchar('=');
             }
-            gotoxy(X_POSITION + 8, Y_POSITION + 8);
-            for (int i = 0; i < 10; i++)
+            gotoxy(X_POSITION + 6, Y_POSITION + 7);
+            for (int i = 0; i < 9; i++)
             {
                 putchar('=');
             }
@@ -632,27 +681,28 @@ void displayBuyMethodWindow(int sockfd){
 
     int X_POSITION = MARGIN_LEFT + 5 * WIDTH / 12,
         Y_POSITION = TOP + 4 * HEIGHT / 12;
+    
 
-    printf(KYEL);
-    gotoxy(X_POSITION-2, Y_POSITION);
-    printf("Stock name: ");
-    gotoxy(X_POSITION, Y_POSITION + 2);
-    printf("Price: ");
-    gotoxy(X_POSITION, Y_POSITION + 4);
-    printf("Amount: ");
-    printf(KMAG);
-    gotoxy(X_POSITION, Y_POSITION + 7);
-    printf("Submit");
-    gotoxy(X_POSITION + 10, Y_POSITION + 7);
+    printf(KYEL); // corlor-font: yellow
+    gotoxy(X_POSITION-12, Y_POSITION);
+    printf("Mã chứng khoán: ");
+    gotoxy(X_POSITION-12, Y_POSITION + 2);
+    printf("           Giá: ");
+    gotoxy(X_POSITION-12, Y_POSITION + 4);
+    printf("      Số lượng: ");
+    printf(KMAG);// corlor-font: purple
+    gotoxy(X_POSITION - 6, Y_POSITION + 6);
+    printf("Đặt lệnh");
+    gotoxy(X_POSITION + 8, Y_POSITION + 6);
     printf("Back");
-    gotoxy(X_POSITION, Y_POSITION - 2);
-    printf(KRED);
-    printf("Press up/down to switch your choice");
+    gotoxy(X_POSITION-12, Y_POSITION - 2);
+    printf(KRED);// corlor-font: red
+    printf("👉 Press up/down to switch your choice 👈");
 
     int choice = 0;
 
     printf(KYEL);
-    gotoxy(X_POSITION - 4, Y_POSITION);
+    gotoxy(X_POSITION - 15, Y_POSITION);
     printf("\u27A4");
 
     char name_stock[40], price[40], amount[40], mesg[100];
@@ -690,15 +740,15 @@ void displayBuyMethodWindow(int sockfd){
                     {
                         if (nameStockLen == 0)
                         {
-                            printf("Please enter stock name!");
+                            printf("❗️ Vui lòng nhập mã chứng khoán ❗️");
                         }
                         else if (priceLen == 0)
                         {
-                            printf("Please enter price !");
+                            printf("❗️ Vui lòng nhập giá ❗️");
                         }
                         else if (amountLen == 0)
                         {
-                            printf("Please enter amount !");
+                            printf("❗️ Vui lòng nhập số lượng ❗️");
                         }
                     }
                     else
@@ -710,8 +760,7 @@ void displayBuyMethodWindow(int sockfd){
                         strcat(mesg, "|");
                         strcat(mesg, amount);
                         addToken(mesg, ORDER_BUY_SIGNAL);
-                        // gotoxy(10, 10);
-                        // printf("%s", mesg);
+
 
                         if (send(sockfd, (void *)mesg, strlen(mesg), 0) < 0)
                         {
@@ -719,17 +768,17 @@ void displayBuyMethodWindow(int sockfd){
                             printf("Error");
                         };
                         strcpy(mesg, "");
-                            gotoxy(0, 0);
-                            printf("Check");
                         recv(sockfd, mesg, 1000, 0);
-                        //int tokenTotal;
-                        //char **data = words(mesg, &tokenTotal, "|");
-                        //SignalState signalState = data[tokenTotal - 1][0] - '0';
-
-                        if (5 == SUCCESS_SIGNAL)
+                        int tokenTotal;
+                        char **data = words(mesg, &tokenTotal, "|");
+                        SignalState signalState = data[tokenTotal - 1][0] - '0';
+                       // gotoxy(0, 0);
+                        //printf("_%d_",signalState);
+                        if (signalState == REQUEST_BUY_SUCCESS_SIGNAL)
                         {
-                            gotoxy(X_POSITION - 12, Y_POSITION + 15);
-                            printf("%s\n", mesg);
+                            gotoxy(X_POSITION - 20, Y_POSITION + 10);
+                            printf(KGRN);
+                            printf("🎉  %s  🎉 ", mesg);
                             while (1)
                             {
                                 if (kbhit())
@@ -742,13 +791,32 @@ void displayBuyMethodWindow(int sockfd){
                                         return;
                                     }
                                 }
-                             //   gotoxy(0, 0);
                             }
                         }
+                        if (signalState == SUCCESS_SIGNAL)
+                            {
+                                gotoxy(X_POSITION - 20, Y_POSITION + 10);
+                                printf(KGRN);
+                                printf("🎉_ %s _🎉 ", mesg);
+                                while (1)
+                                {
+                                    if (kbhit())
+                                    {
+                                        char key3 = getch();
+                                        if (key3 == 10)
+                                        {
+                                            clearScreen();
+                                            displayMainMenuWindow(sockfd);
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
                     }
                 }
                 else if (choice == 4) 
                 {
+                    displayMainMenuWindow(sockfd);
                     state = MENU;
                     break;
                 }
@@ -757,15 +825,15 @@ void displayBuyMethodWindow(int sockfd){
             {
                 if (choice == 0)
                 {
-                    getInput(key, name_stock, 20, &nameStockLen, X_POSITION, Y_POSITION);
+                    getInputForMethod(key, name_stock, 20, &nameStockLen, X_POSITION, Y_POSITION);
                 }
                 else if (choice == 1)
                 {
-                    getInput(key, price, 20, &priceLen, X_POSITION, Y_POSITION + 2);
+                    getInputForMethod(key, price, 20, &priceLen, X_POSITION, Y_POSITION + 2);
                 }
                 else if (choice == 2)
                 {
-                    getInput(key, amount, 20, &amountLen, X_POSITION, Y_POSITION + 4);
+                    getInputForMethod(key, amount, 20, &amountLen, X_POSITION, Y_POSITION + 4);
                 }
                 
             }
@@ -774,21 +842,21 @@ void displayBuyMethodWindow(int sockfd){
         printf(KWHT);
         if (choice == 0)
         {
-            gotoxy(X_POSITION + 10 + nameStockLen, Y_POSITION);
+            gotoxy(X_POSITION + 4 + nameStockLen, Y_POSITION);
             printf("           ");
-            gotoxy(X_POSITION + 10 + nameStockLen, Y_POSITION);
+            gotoxy(X_POSITION + 4 + nameStockLen, Y_POSITION);
         }
         else if (choice == 1)
         {
-            gotoxy(X_POSITION + 10 + priceLen, Y_POSITION + 2);
+            gotoxy(X_POSITION + 4 + priceLen, Y_POSITION + 2);
             printf("           ");
-            gotoxy(X_POSITION + 10 + priceLen, Y_POSITION + 2);
+            gotoxy(X_POSITION + 4 + priceLen, Y_POSITION + 2);
         }
         else if (choice == 2)
         {
-            gotoxy(X_POSITION + 10 + amountLen, Y_POSITION + 4);
+            gotoxy(X_POSITION + 4 + amountLen, Y_POSITION + 4);
             printf("           ");
-            gotoxy(X_POSITION + 10 + amountLen, Y_POSITION + 4);
+            gotoxy(X_POSITION + 4 + amountLen, Y_POSITION + 4);
         }
         else
         {
@@ -799,8 +867,314 @@ void displayBuyMethodWindow(int sockfd){
     }
 }
 
-void displaySellMethodWindow(int sockfd){
+void drawPointerSellMethodWindow(char key, int *choice, int X_POSITION, int Y_POSITION){
+    gotoxy(0, 0);
+    printf("choice: %d", (*choice));
+    if ((*choice) == 0 || (*choice) == 1 || (*choice) == 2)
+    {
+        gotoxy(X_POSITION - 15, Y_POSITION + 2 * (*choice));
+        printf("  ");
+    }
+    else
+    {
+        if ((*choice) == 3)
+        {
+            gotoxy(X_POSITION - 8, Y_POSITION + 6);
+            putchar(' ');
+            gotoxy(X_POSITION + 2, Y_POSITION + 6);
+            putchar(' ');
+            gotoxy(X_POSITION - 8, Y_POSITION + 5);
+            for (int i = 0; i < 11; i++)
+            {
+                putchar(' ');
+            }
+            gotoxy(X_POSITION - 8, Y_POSITION + 7);
+            for (int i = 0; i < 11; i++)
+            {
+                putchar(' ');
+            }
+        }
+        else
+        {
+            gotoxy(X_POSITION + 6, Y_POSITION + 6);
+            putchar(' ');
+            gotoxy(X_POSITION + 14, Y_POSITION + 6);
+            putchar(' ');
+            gotoxy(X_POSITION + 6, Y_POSITION + 5);
+            for (int i = 0; i < 9; i++)
+            {
+                putchar(' ');
+            }
+            gotoxy(X_POSITION + 6, Y_POSITION + 7);
+            for (int i = 0; i < 9; i++)
+            {
+                putchar(' ');
+            }
+        }
+    }
+    // up left
+    if (key == 65 || key == 68)
+    {
+        if ((*choice) == 0)
+        {
+            (*choice) = 4;
+        }
+        else
+        {
+            (*choice)--;
+        }
+    }
+    // down right enter
+    else if (key == 66 || key == 67 || key == 10)
+    {
+        if ((*choice) == 4)
+        {
+            (*choice) = 0;
+        }
+        else
+        {
+            (*choice)++;
+        }
+    }
+    printf(KYEL);
+    if ((*choice) == 0 || (*choice) == 1 || (*choice) == 2)
+    {
+        gotoxy(X_POSITION - 15, Y_POSITION + 2 * (*choice));
+        printf("\u27A4");
+    }
+    else
+    {
+        if ((*choice) == 3)
+        {
+            gotoxy(X_POSITION - 8, Y_POSITION + 6);
+            putchar('|');
+            gotoxy(X_POSITION + 2, Y_POSITION + 6);
+            putchar('|');
+            gotoxy(X_POSITION - 8, Y_POSITION + 5);
+            for (int i = 0; i < 11; i++)
+            {
+                putchar('=');
+            }
+            gotoxy(X_POSITION - 8, Y_POSITION + 7);
+            for (int i = 0; i < 11; i++)
+            {
+                putchar('=');
+            }
+        }
+        else
+        {
+            gotoxy(X_POSITION + 6, Y_POSITION + 6);
+            putchar('|');
+            gotoxy(X_POSITION + 14, Y_POSITION + 6);
+            putchar('|');
+            gotoxy(X_POSITION + 6, Y_POSITION + 5);
+            for (int i = 0; i < 9; i++)
+            {
+                putchar('=');
+            }
+            gotoxy(X_POSITION + 6, Y_POSITION + 7);
+            for (int i = 0; i < 9; i++)
+            {
+                putchar('=');
+            }
+        }
+    }
 
+    gotoxy(0, Y_POSITION + 3);
+    printf("        ");
+}
+
+void displaySellMethodWindow(int sockfd){
+    clearScreen();
+    drawBorder();
+
+    int X_POSITION = MARGIN_LEFT + 5 * WIDTH / 12,
+        Y_POSITION = TOP + 4 * HEIGHT / 12;
+    
+
+    printf(KYEL); // corlor-font: yellow
+    gotoxy(X_POSITION-12, Y_POSITION);
+    printf("Mã chứng khoán: ");
+    gotoxy(X_POSITION-12, Y_POSITION + 2);
+    printf("           Giá: ");
+    gotoxy(X_POSITION-12, Y_POSITION + 4);
+    printf("      Số lượng: ");
+    printf(KMAG);// corlor-font: purple
+    gotoxy(X_POSITION - 6, Y_POSITION + 6);
+    printf("Bán");
+    gotoxy(X_POSITION + 8, Y_POSITION + 6);
+    printf("Back");
+    gotoxy(X_POSITION-12, Y_POSITION - 2);
+    printf(KRED);// corlor-font: red
+    printf("👉 Press up/down to switch your choice 👈");
+
+    int choice = 0;
+
+    printf(KYEL);
+    gotoxy(X_POSITION - 15, Y_POSITION);
+    printf("\u27A4");
+
+    char name_stock[40], price[40], amount[40], mesg[100];
+    int nameStockLen = 0, priceLen = 0, amountLen = 0;
+
+    while (1)
+    {
+        // phat hien nhan phim
+        if (kbhit())
+        {
+            // xoa con tro o vi tri cu
+
+            // lay ma ascii cu phim vua nhan
+            char key = getch();
+            // up
+            if (key == 65 || key == 66 || key == 67 || key == 68)
+            {
+                gotoxy(X_POSITION - 12, Y_POSITION + 10);
+                printf("                                                ");
+                drawPointerSellMethodWindow(key, &choice, X_POSITION, Y_POSITION);
+            }
+            // Enter
+            else if (key == 10)
+            {
+                if (choice == 0 || choice == 1 || choice == 2)
+                {
+                    drawPointerSellMethodWindow(key, &choice, X_POSITION, Y_POSITION);
+                }
+                else if (choice == 3)  // submit
+                {
+                    // gotoxy(0, 0);
+                    gotoxy(X_POSITION - 12, Y_POSITION + 15);
+                    printf(KRED);
+                    if (nameStockLen == 0 || priceLen == 0 || amountLen == 0)
+                    {
+                        if (nameStockLen == 0)
+                        {
+                            printf("❗️ Vui lòng nhập mã chứng khoán ❗️");
+                        }
+                        else if (priceLen == 0)
+                        {
+                            printf("❗️ Vui lòng nhập giá ❗️");
+                        }
+                        else if (amountLen == 0)
+                        {
+                            printf("❗️ Vui lòng nhập số lượng ❗️");
+                        }
+                    }
+                    else
+                    {
+
+                        strcpy(mesg, name_stock);
+                        strcat(mesg, "|");
+                        strcat(mesg, price);
+                        strcat(mesg, "|");
+                        strcat(mesg, amount);
+                        addToken(mesg, ORDER_SELL_SIGNAL);
+                        // gotoxy(10, 10);
+                        // printf("%s", mesg);
+
+                        if (send(sockfd, (void *)mesg, strlen(mesg), 0) < 0)
+                        {
+                            gotoxy(0, 0);
+                            printf("Error");
+                        };
+                        strcpy(mesg, "");
+                        recv(sockfd, mesg, 1000, 0);
+                        // gotoxy(0, 0);
+                        // printf("%s",mesg);
+                        int tokenTotal;
+                        char **data = words(mesg, &tokenTotal, "|");
+                        SignalState signalState = data[tokenTotal - 1][0] - '0';
+                        if (signalState == REQUEST_SELL_SUCCESS_SIGNAL)
+                        {
+                            gotoxy(X_POSITION - 20, Y_POSITION + 10);
+                            printf(KGRN);
+                            printf("🎉  %s  🎉 ", mesg);
+                            while (1)
+                            {
+                                if (kbhit())
+                                {
+                                    char key3 = getch();
+                                    if (key3 == 10)
+                                    {
+                                        clearScreen();
+                                        displayMainMenuWindow(sockfd);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        if (signalState == SUCCESS_SIGNAL)
+                                {
+                                    gotoxy(X_POSITION - 20, Y_POSITION + 10);
+                                    printf(KGRN);
+                                    printf("🎉  %s  🎉 ", mesg);
+                                    while (1)
+                                    {
+                                        if (kbhit())
+                                        {
+                                            char key3 = getch();
+                                            if (key3 == 10)
+                                            {
+                                                clearScreen();
+                                                displayMainMenuWindow(sockfd);
+                                                return;
+                                            }
+                                        }
+                                    }       
+                                }
+                    }
+                }
+                else if (choice == 4) 
+                {
+                    displayMainMenuWindow(sockfd);
+                    state = MENU;
+                    break;
+                }
+            }
+            else
+            {
+                if (choice == 0)
+                {
+                    getInputForMethod(key, name_stock, 20, &nameStockLen, X_POSITION, Y_POSITION);
+                }
+                else if (choice == 1)
+                {
+                    getInputForMethod(key, price, 20, &priceLen, X_POSITION, Y_POSITION + 2);
+                }
+                else if (choice == 2)
+                {
+                    getInputForMethod(key, amount, 20, &amountLen, X_POSITION, Y_POSITION + 4);
+                }
+                
+            }
+        }
+
+        printf(KWHT);
+        if (choice == 0)
+        {
+            gotoxy(X_POSITION + 4 + nameStockLen, Y_POSITION);
+            printf("           ");
+            gotoxy(X_POSITION + 4 + nameStockLen, Y_POSITION);
+        }
+        else if (choice == 1)
+        {
+            gotoxy(X_POSITION + 4 + priceLen, Y_POSITION + 2);
+            printf("           ");
+            gotoxy(X_POSITION + 4 + priceLen, Y_POSITION + 2);
+        }
+        else if (choice == 2)
+        {
+            gotoxy(X_POSITION + 4 + amountLen, Y_POSITION + 4);
+            printf("           ");
+            gotoxy(X_POSITION + 4 + amountLen, Y_POSITION + 4);
+        }
+        else
+        {
+            gotoxy(0, 0);
+            printf("          ");
+            gotoxy(0, 0);
+        }
+    }
 }
 
 void displayOrderWindow(int sockfd){
@@ -809,16 +1183,19 @@ void displayOrderWindow(int sockfd){
 
     int X_POSITION = MARGIN_LEFT + 5 * WIDTH / 12,
         Y_POSITION = TOP + 5 * HEIGHT / 12;
-
+    
     printf(KWHT);
-    gotoxy(X_POSITION, Y_POSITION);
-    printf("Buy");
-    gotoxy(X_POSITION, Y_POSITION + 2);
-    printf("Sell");
-    gotoxy(X_POSITION, Y_POSITION + 4);
-    printf("Back");
+    gotoxy(X_POSITION, Y_POSITION - 10);
+    printf("💈   Mua   💈");
+    gotoxy(X_POSITION, Y_POSITION - 8);
+    printf("💈   Bán   💈");
+    gotoxy(X_POSITION, Y_POSITION - 6);
+    printf("💈   Back  💈");
+    printf(KGRN);
+    gotoxy(X_POSITION-5, Y_POSITION - 15);
+    printf("⭐️⭐️⭐️⭐️ ĐẶT LỆNH ⭐️⭐️⭐️⭐️");
 
-    int pointer = Y_POSITION, choice;
+    int pointer = Y_POSITION - 10, choice;
     printf(KYEL);
 
     while (1)
@@ -844,10 +1221,10 @@ void displayOrderWindow(int sockfd){
             // up
             if (key == 65)
             {
-                if (pointer == Y_POSITION)
+                if (pointer == Y_POSITION - 10)
                 {
                     // neu con tro dang o vi tri cao nhat thi chuyen xuong cuoi
-                    pointer = Y_POSITION + 6;
+                    pointer = Y_POSITION - 6;
                 }
                 else
                 {
@@ -857,10 +1234,10 @@ void displayOrderWindow(int sockfd){
             // down
             else if (key == 66)
             {
-                if (pointer == Y_POSITION + 6)
+                if (pointer == Y_POSITION - 6)
                 {
                     // neu dang o duoi cung thi chuyen len tren
-                    pointer = Y_POSITION;
+                    pointer = Y_POSITION - 10;
                 }
                 else
                 {
@@ -870,7 +1247,7 @@ void displayOrderWindow(int sockfd){
             // Enter
             else if (key == 10)
             {
-                choice = (pointer - Y_POSITION) / 2;
+                choice = (pointer - Y_POSITION + 10) / 2;
                 gotoxy(0,0);
                 printf("choice: %d ", choice);
                 printf("pointer: %d ", pointer);
@@ -884,9 +1261,131 @@ void displayOrderWindow(int sockfd){
                 }
                 else
                 {
-                    state = MENU;
-                    return;
+                    displayMainMenuWindow(sockfd);
+                    //state = MENU;
+                    //return;
                 }
+            }
+        }
+
+        printf(KYEL);
+
+        gotoxy(X_POSITION - 10, pointer);
+        putchar('|');
+        gotoxy(X_POSITION + 20, pointer);
+        putchar('|');
+        gotoxy(X_POSITION - 10, pointer - 1);
+        for (int i = 0; i < 31; i++)
+        {
+            putchar('-');
+        }
+        gotoxy(X_POSITION - 10, pointer + 1);
+        for (int i = 0; i < 31; i++)
+        {
+            putchar('-');
+        }
+
+        gotoxy(0, 0);
+        printf(KWHT);
+        printf("      ");
+        gotoxy(0, 0);
+    }
+}
+
+void displayAccountInfoWindow(int sockfd, char username[1024]){
+    system("clear");
+    drawBorder();
+
+    int X_POSITION = MARGIN_LEFT + 5 * WIDTH / 12,
+        Y_POSITION = TOP + 5 * HEIGHT / 12;
+    l_user *user =  get_account(username);
+    if (user == NULL){
+        gotoxy(20,20);
+        printf("no");
+    }else {
+        printf(KWHT);
+        gotoxy(X_POSITION, Y_POSITION - 10);
+        printf("💈   Thông tin cá nhân   💈");
+        printf(KYEL);
+        gotoxy(X_POSITION, Y_POSITION - 8);
+        printf("📍    ID:");
+        printf(KWHT);
+        gotoxy(X_POSITION + 5, Y_POSITION - 8);
+        printf("%d", user->id);
+        gotoxy(X_POSITION, Y_POSITION - 6);
+        printf("📍    Tên:");
+        printf(KWHT);
+        gotoxy(X_POSITION + 5, Y_POSITION - 6);
+        printf("%s", user->username);
+        gotoxy(X_POSITION, Y_POSITION - 4);
+        printf("📍  Số dư:");
+        printf(KWHT);
+        gotoxy(X_POSITION + 5, Y_POSITION - 4);
+        printf("%d VND", user->balance);
+        gotoxy(X_POSITION, Y_POSITION - 2);
+        printf("📍  Trạng thái:");
+        printf(KWHT);
+        gotoxy(X_POSITION + 5, Y_POSITION - 2);
+        printf("%d", user->status);
+    }
+   // l_stock *stock = user->stock;
+  
+    // gotoxy(X_POSITION, Y_POSITION - 6);
+    // printf("💈   Back  💈");
+
+    int pointer = Y_POSITION - 10, choice;
+    printf(KYEL);
+
+    while (1)
+    {
+        sleep(0.3);
+        if (kbhit())
+        {
+            gotoxy(X_POSITION - 10, pointer);
+            putchar(' ');
+            gotoxy(X_POSITION + 20, pointer);
+            putchar(' ');
+            gotoxy(X_POSITION - 10, pointer - 1);
+            for (int i = 0; i < 31; i++)
+            {
+                putchar(' ');
+            }
+            gotoxy(X_POSITION - 10, pointer + 1);
+            for (int i = 0; i < 31; i++)
+            {
+                putchar(' ');
+            }
+            char key = getch();
+            // up
+            if (key == 65)
+            {
+                if (pointer == Y_POSITION - 10)
+                {
+                    // neu con tro dang o vi tri cao nhat thi chuyen xuong cuoi
+                    pointer = Y_POSITION - 6;
+                }
+                else
+                {
+                    pointer -= 2;
+                }
+            }
+            // down
+            else if (key == 66)
+            {
+                if (pointer == Y_POSITION - 6)
+                {
+                    // neu dang o duoi cung thi chuyen len tren
+                    pointer = Y_POSITION - 10;
+                }
+                else
+                {
+                    pointer += 2;
+                }
+            }
+            // Enter
+            else if (key == 10)
+            {
+                
             }
         }
 
@@ -918,25 +1417,27 @@ void displayMainMenuWindow(int sockfd)
 {
     system("clear");
     drawBorder();
+    char mesg[BUFFER];
 
     int X_POSITION = MARGIN_LEFT + 5 * WIDTH / 12,
         Y_POSITION = TOP + 5 * HEIGHT / 12;
     printf(KGRN);
-    gotoxy(X_POSITION, Y_POSITION-5);
-    printf("🐶🐶🐶🐶🐶Welcome %s🐶🐶🐶🐶🐶", username);
+    gotoxy(X_POSITION - 5, Y_POSITION - 10);
+    printf("🎊🎊🎊🎊 Welcome %s 🎊🎊🎊🎊", username);
     printf(KWHT);
-    gotoxy(X_POSITION, Y_POSITION);
-    printf("Xem bảng điện");
-    gotoxy(X_POSITION, Y_POSITION + 2);
-    printf("Đặt lệnh");
-    gotoxy(X_POSITION, Y_POSITION + 4);
-    printf("Giao dịch trực tiếp");
-    gotoxy(X_POSITION, Y_POSITION + 6);
-    printf("Quản lí tài khoản");
-    gotoxy(X_POSITION, Y_POSITION + 8);
-    printf("Log out");
+    gotoxy(X_POSITION - 2, Y_POSITION - 7);
+    printf("💈    Xem bảng điện    💈");
+    gotoxy(X_POSITION - 2, Y_POSITION - 5);
+    printf("💈      Đặt lệnh       💈");
+    gotoxy(X_POSITION - 2, Y_POSITION - 3);
+    printf("💈 Giao dịch trực tiếp 💈");
+    gotoxy(X_POSITION - 2, Y_POSITION - 1);
+    printf("💈  Quản lí tài khoản  💈");
+    gotoxy(X_POSITION - 2, Y_POSITION + 1);
+    printf("💈      Đăng xuất      💈");
 
-    int pointer = Y_POSITION, choice;
+    // pointer just show the position of border respectsively
+    int pointer = Y_POSITION - 7, choice;
     printf(KYEL);
 
     while (1)
@@ -944,16 +1445,17 @@ void displayMainMenuWindow(int sockfd)
         sleep(0.3);
         if (kbhit())
         {
-            gotoxy(X_POSITION - 10, pointer);
+            // clear border
+            gotoxy(X_POSITION - 5, pointer);
             putchar(' ');
-            gotoxy(X_POSITION + 20, pointer);
+            gotoxy(X_POSITION + 25, pointer);
             putchar(' ');
-            gotoxy(X_POSITION - 10, pointer - 1);
+            gotoxy(X_POSITION - 5, pointer - 1);
             for (int i = 0; i < 31; i++)
             {
                 putchar(' ');
             }
-            gotoxy(X_POSITION - 10, pointer + 1);
+            gotoxy(X_POSITION - 5, pointer + 1);
             for (int i = 0; i < 31; i++)
             {
                 putchar(' ');
@@ -962,10 +1464,10 @@ void displayMainMenuWindow(int sockfd)
             // up
             if (key == 65)
             {
-                if (pointer == Y_POSITION)
+                if (pointer == Y_POSITION - 7)
                 {
                     // neu con tro dang o vi tri cao nhat thi chuyen xuong cuoi
-                    pointer = Y_POSITION + 8;
+                    pointer = Y_POSITION + 1;
                 }
                 else
                 {
@@ -975,10 +1477,10 @@ void displayMainMenuWindow(int sockfd)
             // down
             else if (key == 66)
             {
-                if (pointer == Y_POSITION + 8)
+                if (pointer == Y_POSITION + 1)
                 {
                     // neu dang o duoi cung thi chuyen len tren
-                    pointer = Y_POSITION;
+                    pointer = Y_POSITION - 7;
                 }
                 else
                 {
@@ -988,15 +1490,20 @@ void displayMainMenuWindow(int sockfd)
             // Enter
             else if (key == 10)
             {
-                choice = (pointer - Y_POSITION) / 2;
-                gotoxy(0,0);
-                printf("choice: %d", choice);
+                choice = (pointer - Y_POSITION + 7) / 2;
+                // gotoxy(0,0);
+                // printf("choice: %d", choice);
                 if (choice == 0) {
                     // return;
                 }
                 else if (choice == 1)
                 {
                     displayOrderWindow(sockfd);
+                }
+                else if (choice == 3)
+                {;
+                   // printf("_%d_",signalState);
+                    displayAccountInfoWindow(sockfd, username);
                 }
                 else
                 {
@@ -1005,19 +1512,18 @@ void displayMainMenuWindow(int sockfd)
                 }
             }
         }
-
         printf(KYEL);
-
-        gotoxy(X_POSITION - 10, pointer);
+        // draw border of select option
+        gotoxy(X_POSITION - 5, pointer);
         putchar('|');
-        gotoxy(X_POSITION + 20, pointer);
+        gotoxy(X_POSITION + 25, pointer);
         putchar('|');
-        gotoxy(X_POSITION - 10, pointer - 1);
+        gotoxy(X_POSITION - 5, pointer - 1);
         for (int i = 0; i < 31; i++)
         {
             putchar('-');
         }
-        gotoxy(X_POSITION - 10, pointer + 1);
+        gotoxy(X_POSITION - 5, pointer + 1);
         for (int i = 0; i < 31; i++)
         {
             putchar('-');
@@ -1027,6 +1533,35 @@ void displayMainMenuWindow(int sockfd)
         printf(KWHT);
         printf("      ");
         gotoxy(0, 0);
+
+
+        // print notification message
+        // strcpy(mesg, "");
+        // recv(sockfd, mesg, 1000, 0);
+        // // gotoxy(0, 0);
+        // // printf("%s",mesg);
+        // int tokenTotal;
+        // char **data = words(mesg, &tokenTotal, "|");
+        // SignalState signalState = data[tokenTotal - 1][0] - '0';
+        // if (signalState == SUCCESS_SIGNAL)
+        // {
+        //     gotoxy(X_POSITION - 10, Y_POSITION - 15);
+        //     printf(KGRN);
+        //     printf("🔔  %s  🔔 ", mesg);
+        //     while (1)
+        //     {
+        //         if (kbhit())
+        //         {
+        //             char key3 = getch();
+        //             if (key3 == 10)
+        //             {
+        //                 clearScreen();
+        //                 displayMainMenuWindow(sockfd);
+        //                 return;
+        //             }
+        //         }
+        //     }       
+        // }
     }
 }
 
@@ -1034,23 +1569,25 @@ void drawPointerLoginWindow(char key, int *choice, int X_POSITION, int Y_POSITIO
 {
     if ((*choice) == 0 || (*choice) == 1)
     {
-        gotoxy(X_POSITION - 4, Y_POSITION + 2 * (*choice));
+        // clear pointer when select other field
+        gotoxy(X_POSITION - 16, Y_POSITION + 2 * (*choice));
         printf("  ");
     }
     else
     {
         if ((*choice) == 2)
         {
-            gotoxy(X_POSITION - 2, Y_POSITION + 5);
+            // delete border line for submit 
+            gotoxy(X_POSITION - 8, Y_POSITION + 5);
             putchar(' ');
-            gotoxy(X_POSITION + 6, Y_POSITION + 5);
+            gotoxy(X_POSITION, Y_POSITION + 5);
             putchar(' ');
-            gotoxy(X_POSITION - 2, Y_POSITION + 4);
+            gotoxy(X_POSITION - 8, Y_POSITION + 4);
             for (int i = 0; i < 9; i++)
             {
                 putchar(' ');
             }
-            gotoxy(X_POSITION - 2, Y_POSITION + 6);
+            gotoxy(X_POSITION - 8, Y_POSITION + 6);
             for (int i = 0; i < 9; i++)
             {
                 putchar(' ');
@@ -1058,17 +1595,17 @@ void drawPointerLoginWindow(char key, int *choice, int X_POSITION, int Y_POSITIO
         }
         else
         {
-            gotoxy(X_POSITION + 8, Y_POSITION + 5);
+            gotoxy(X_POSITION + 2, Y_POSITION + 5);
             putchar(' ');
-            gotoxy(X_POSITION + 17, Y_POSITION + 5);
+            gotoxy(X_POSITION + 10, Y_POSITION + 5);
             putchar(' ');
-            gotoxy(X_POSITION + 8, Y_POSITION + 4);
-            for (int i = 0; i < 10; i++)
+            gotoxy(X_POSITION + 2, Y_POSITION + 4);
+            for (int i = 0; i < 9; i++)
             {
                 putchar(' ');
             }
-            gotoxy(X_POSITION + 8, Y_POSITION + 6);
-            for (int i = 0; i < 10; i++)
+            gotoxy(X_POSITION + 2, Y_POSITION + 6);
+            for (int i = 0; i < 9; i++)
             {
                 putchar(' ');
             }
@@ -1102,23 +1639,25 @@ void drawPointerLoginWindow(char key, int *choice, int X_POSITION, int Y_POSITIO
     printf(KYEL);
     if ((*choice) == 0 || (*choice) == 1)
     {
-        gotoxy(X_POSITION - 4, Y_POSITION + 2 * (*choice));
+        // print pointer
+        gotoxy(X_POSITION - 16, Y_POSITION + 2 * (*choice));
         printf("\u27A4");
     }
     else
     {
+        // Border for Submit and Back Button
         if ((*choice) == 2)
         {
-            gotoxy(X_POSITION - 2, Y_POSITION + 5);
+            gotoxy(X_POSITION - 8, Y_POSITION + 5);
             putchar('|');
-            gotoxy(X_POSITION + 6, Y_POSITION + 5);
+            gotoxy(X_POSITION, Y_POSITION + 5);
             putchar('|');
-            gotoxy(X_POSITION - 2, Y_POSITION + 4);
+            gotoxy(X_POSITION - 8, Y_POSITION + 4);
             for (int i = 0; i < 9; i++)
             {
                 putchar('=');
             }
-            gotoxy(X_POSITION - 2, Y_POSITION + 6);
+            gotoxy(X_POSITION - 8, Y_POSITION + 6);
             for (int i = 0; i < 9; i++)
             {
                 putchar('=');
@@ -1126,17 +1665,18 @@ void drawPointerLoginWindow(char key, int *choice, int X_POSITION, int Y_POSITIO
         }
         else
         {
-            gotoxy(X_POSITION + 8, Y_POSITION + 5);
+            // for back button
+            gotoxy(X_POSITION + 2, Y_POSITION + 5);
             putchar('|');
-            gotoxy(X_POSITION + 17, Y_POSITION + 5);
+            gotoxy(X_POSITION + 10, Y_POSITION + 5);
             putchar('|');
-            gotoxy(X_POSITION + 8, Y_POSITION + 4);
-            for (int i = 0; i < 10; i++)
+            gotoxy(X_POSITION + 2, Y_POSITION + 4);
+            for (int i = 0; i < 9; i++)
             {
                 putchar('=');
             }
-            gotoxy(X_POSITION + 8, Y_POSITION + 6);
-            for (int i = 0; i < 10; i++)
+            gotoxy(X_POSITION + 2, Y_POSITION + 6);
+            for (int i = 0; i < 9; i++)
             {
                 putchar('=');
             }
@@ -1155,24 +1695,25 @@ void displayLoginWindow(int sockfd)
     int X_POSITION = MARGIN_LEFT + 5 * WIDTH / 12,
         Y_POSITION = TOP + 4 * HEIGHT / 12;
 
-    printf(KYEL);
-    gotoxy(X_POSITION, Y_POSITION);
+    printf(KYEL); // corlor-font: yellow
+    gotoxy(X_POSITION-12, Y_POSITION);
     printf("Username: ");
-    gotoxy(X_POSITION, Y_POSITION + 2);
+    gotoxy(X_POSITION-12, Y_POSITION + 2);
     printf("Password: ");
-    printf(KMAG);
-    gotoxy(X_POSITION, Y_POSITION + 5);
+    printf(KMAG);// corlor-font: purple
+    gotoxy(X_POSITION - 6, Y_POSITION + 5);
     printf("Login");
-    gotoxy(X_POSITION + 10, Y_POSITION + 5);
+    gotoxy(X_POSITION + 4, Y_POSITION + 5);
     printf("Back");
-    gotoxy(X_POSITION, Y_POSITION - 2);
-    printf(KRED);
-    printf("Press up/down to switch your choice");
+    gotoxy(X_POSITION-12, Y_POSITION - 2);
+    printf(KRED);// corlor-font: red
+    printf("👉 Press up/down to switch your choice 👈");
 
     int choice = 0;
 
-    printf(KYEL);
-    gotoxy(X_POSITION - 4, Y_POSITION);
+    printf(KYEL);// corlor-font: red
+    gotoxy(X_POSITION - 16, Y_POSITION);
+    // print first pointer
     printf("\u27A4");
 
     char mesg[40];
@@ -1186,7 +1727,7 @@ void displayLoginWindow(int sockfd)
 
             if (key == 65 || key == 66 || key == 67 || key == 68)
             {
-                gotoxy(X_POSITION - 12, Y_POSITION + 10);
+                gotoxy(X_POSITION , Y_POSITION + 10);
                 printf("                                                ");
                 drawPointerLoginWindow(key, &choice, X_POSITION, Y_POSITION);
             }
@@ -1206,11 +1747,11 @@ void displayLoginWindow(int sockfd)
                     {
                         if (usernameLen == 0)
                         {
-                            printf("Please enter username !");
+                            printf("❗️ Please enter username ❗️");
                         }
                         else if (passwordLen == 0)
                         {
-                            printf("Please enter password !");
+                            printf("❗️ Please enter password ❗️");
                         }
                     }
                     else
@@ -1241,7 +1782,8 @@ void displayLoginWindow(int sockfd)
                         if (signalState == SUCCESS_SIGNAL)
                         {
                             gotoxy(X_POSITION - 12, Y_POSITION + 10);
-                            printf("Success! Press Enter to continue");
+                            printf(KGRN);
+                            printf("🎉 Success! Press Enter to continue 🎉");
                             while (1)
                             {
                                 if (kbhit())
@@ -1279,17 +1821,18 @@ void displayLoginWindow(int sockfd)
         }
 
         printf(KWHT);
+        // set position for input form 
         if (choice == 0)
         {
-            gotoxy(X_POSITION + 10 + usernameLen, Y_POSITION);
+            gotoxy(X_POSITION + 2 + usernameLen, Y_POSITION);
             printf("      ");
-            gotoxy(X_POSITION + 10 + usernameLen, Y_POSITION);
+            gotoxy(X_POSITION + 2 + usernameLen, Y_POSITION);
         }
         else if (choice == 1)
         {
-            gotoxy(X_POSITION + 10 + passwordLen, Y_POSITION + 2);
+            gotoxy(X_POSITION + 2 + passwordLen, Y_POSITION + 2);
             printf("      ");
-            gotoxy(X_POSITION + 10 + passwordLen, Y_POSITION + 2);
+            gotoxy(X_POSITION + 2 + passwordLen, Y_POSITION + 2);
         }
         else
         {
