@@ -59,6 +59,7 @@ void print_list();
 void error(char *s);
 
 l_user *current_user;
+l_user *current_one;
 l_user *get_account(char username[MAX_CHAR]);
 int sign_in(char username[MAX_CHAR], char password[MAX_CHAR], int clientfd);
 int check_pass(l_user *account, char password[MAX_CHAR]);
@@ -98,3 +99,4 @@ l_user* online_user;
 void direct_buy(l_order *order, int clientfd);
 void direct_sell(l_order *order, int clientfd);
 l_user *get_current_user(int clientfd);
+char **words(char *line, int *total, char *strCut);

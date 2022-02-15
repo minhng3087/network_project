@@ -577,3 +577,17 @@ l_user *get_current_user(int clientfd) {
     }
     return NULL;
 }
+
+char **words(char *line, int *total, char *strCut) {
+  char **w = (char**)malloc(sizeof(char)*100);
+  *w = (char*)malloc(sizeof(char)*100);
+
+  int n = 0;
+  char * token = strtok(line, strCut);
+  while( token != NULL ) {
+    *(w + n++)  = token;
+    token = strtok(NULL, strCut);
+  }
+  *total = n;
+  return w;
+}

@@ -26,8 +26,10 @@ int temp_amount = 0;
 int sell_flag = 0;
 int count_same = 0;
 int list_trade[2];
+int direct_buy_flag = 0;
+int direct_sell_flag = 0;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-
+ 
 void manage_profile_account(int clientfd, char username[MAX_CHAR]) {
     l_user *user =  get_account(username);
     char target[BUFFER_SIZE];
@@ -293,10 +295,114 @@ void order(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR], int
             break;
     }
 }
+
+
+void direct_sell_stock(int clientfd, char request[BUFFER_SIZE], l_user *current, l_user *trader) {
+    // pthread_mutex_lock(&lock);
+    l_order *order_direct = malloc(sizeof(l_order));
+    char name_stock[MAX_CHAR], response[BUFFER_SIZE];
+    char price_str[MAX_CHAR];
+    char amount_str[MAX_CHAR];
+    int price, stock_amount, amount;
+    int tokenCount;
+    char **data = words(request, &tokenCount, "|\n");
+    strcpy(name_stock, data[0]);
+    strcpy(price_str, data[1]);
+    strcpy(amount_str, data[2]);
+    price = atoi(price_str);
+    stock_amount = direct_trade(current, trader, name_stock, price, 2);
+    amount = atoi(amount_str);
+    char direct_order[BUFFER_SIZE];
+    char target[BUFFER];
+    int signal;
+    if (direct_trade(current, trader, name_stock, 0, 2) == FALSE) {
+        strcpy(response, "Stock not found\n");
+    } else if (amount > stock_amount) {
+        strcpy(response, "You don't have enough amount of stock \n");
+    } else if (amount < 0) {
+        strcpy(response, "Invalid amount \n");
+    } else {
+        strcpy(response, "Please wait...");
+        strcat(direct_order, current->username);
+        strcat(direct_order, " want to sell: ");
+        sprintf(target, "%d of %s with price: %d (y/n)", amount, name_stock, price);
+        strcpy(order_direct->stock_name, name_stock);
+        order_direct->user_id = current->id;
+        order_direct->amount = amount;
+        order_direct->price = price;
+        order_direct->type = 1;
+        head_order = order_direct;
+        strcat(direct_order, target);
+        send(trader->clientfd, direct_order, strlen(direct_order), 0);
+    }
+
+    send(clientfd, response, strlen(response), 0);
+    // pthread_mutex_unlock(&lock);
+}
+
+void direct_buy_stock(int clientfd, char request[BUFFER_SIZE], l_user *current, l_user *trader) {
+    // pthread_mutex_lock(&lock);
+    l_order *order_direct = malloc(sizeof(l_order));
+    char name_stock[MAX_CHAR], response[BUFFER_SIZE];
+    char price_str[MAX_CHAR];
+    char amount_str[MAX_CHAR];
+    int price, stock_amount, amount;
+    int tokenCount;
+    char **data = words(request, &tokenCount, "|\n");
+    strcpy(name_stock, data[0]);
+    strcpy(price_str, data[1]);
+    strcpy(amount_str, data[2]);
+    price = atoi(price_str);
+    stock_amount = direct_trade(current, trader, name_stock, price, 1);
+    amount = atoi(amount_str);
+    char direct_order[BUFFER_SIZE];
+    char target[BUFFER];
+    int signal;
+    if (direct_trade(current, trader, name_stock, 0, 1) == FALSE) {
+        strcpy(response, "Stock not found\n");
+    } else if (stock_amount == 0) {
+        strcpy(response, "Your balance is not enough \n");
+    } else if (amount > stock_amount) {
+        strcpy(response, "Invalid amount \n");
+    } else if (amount < 0) {
+        strcpy(response, "Invalid amount \n");
+    } else {
+        strcpy(response, "Please wait...");
+        strcat(direct_order, current->username);
+        strcat(direct_order, " want to buy: ");
+        sprintf(target, "%d of %s with price: %d (y/n)", amount, name_stock, price);
+        strcpy(order_direct->stock_name, name_stock);
+        order_direct->user_id = current->id;
+        order_direct->amount = amount;
+        order_direct->price = price;
+        order_direct->type = 0;
+        head_order = order_direct;
+        strcat(direct_order, target);
+        send(trader->clientfd, direct_order, strlen(direct_order), 0);
+    }
+
+    send(clientfd, response, strlen(response), 0);
+    // pthread_mutex_unlock(&lock);
+}
+
+void direct(int clientfd, char request[BUFFER_SIZE], l_user *current, l_user *trader, int check_action) {
+    switch(check_action) {
+        case 1:
+            direct_buy_stock(clientfd, request, current, trader);
+            break;
+        case 2: 
+            direct_sell_stock(clientfd, request, current, trader);
+            break;
+        case 3:
+            send(clientfd, "end", strlen("end"), 0);
+            direct_buy_flag = 0;
+            direct_sell_flag = 0;
+            break;
+    }
+}
 void *client_handler(void *arg){
     int clientfd, n, flag = 1, check = 0, buy = 0, sell = 0, flag_main,
-        check_order = 0, check_action ;
-    l_order *order_direct = malloc(sizeof(l_order));
+    check_order = 0, check_action = 0, check_direct_action = 0 ;
 
     char buff[BUFFER_SIZE], response[BUFFER_SIZE], username[MAX_CHAR], password[MAX_CHAR];
     char stock_name[MAX_CHAR], price[MAX_CHAR], trader_id[MAX_CHAR], amount[MAX_CHAR], type[MAX_CHAR];
@@ -353,8 +459,8 @@ void *client_handler(void *arg){
             case 3: 
                 if(strcmp(buff, "direct") == 0) {
                     flag_main = 3;
-                    current_user = get_current_user(clientfd);
-                    current_user->is_trading = TRUE;
+                    l_user *current_one = get_current_user(clientfd);
+                    current_one->is_trading = TRUE;
                     DIRECT: 
                     if (strcmp(buff, "y") == 0 || strcmp(buff, "yes") == 0) {
                         strcpy(response, "Transaction succesfully!\n");
@@ -387,11 +493,11 @@ void *client_handler(void *arg){
                     if(check == 0) {
                         char str[MAX_CHAR] = "Please choose user you want to transaction: \n";
                         strcpy(response, str);
-                        strcat(response, online_users(current_user));
+                        strcat(response, online_users(current_one));
                         char other_rep[MAX_CHAR];
                         l_user *tmp = head_user;
                         while (tmp != NULL) {
-                            if (tmp->is_trading == TRUE && tmp->id != current_user->id) {
+                            if (tmp->is_trading == TRUE && tmp->id != current_one->id) {
                                 strcpy(other_rep, str);
                                 strcat(other_rep, online_users(tmp));
                                 send(tmp->clientfd, other_rep, strlen(other_rep), 0);
@@ -399,10 +505,11 @@ void *client_handler(void *arg){
                             tmp = tmp->next;
                         }
                         check++;
+                        // send(clientfd, response, strlen(response), 0);
                     }else if (check == 1) {
                         strcpy(trader_id, buff);
                         trader = trade_user(trader_id);
-                        list_trade[0] = current_user->clientfd;
+                        list_trade[0] = current_one->clientfd;
                         list_trade[1] = trader->clientfd;
                         if(trader) {
                             strcpy(response, "Please choose action(1.Buy, 2.Sell): ");
@@ -411,122 +518,148 @@ void *client_handler(void *arg){
                             strcpy(response, "User not online, please try again");
                             check--;
                         }
-                    }else if (check == 2) {
-                        char direct_order[BUFFER_SIZE];
-                        if (strcmp(type,"1") == 0) {
-                            if (buy == 1) {
-                                strcpy(stock_name, buff);
-                                if(direct_trade(current_user, trader, stock_name, 0, 1) == TRUE) {
-                                    strcpy(response, "Input price: ");
-                                    buy++;
-                                } else {
-                                    strcpy(response, "Stock not found\n");
-                                    char str[MAX_CHAR] = "Please choose stock to buy:";
-                                    strcat(str, user_stock_list(trader_id));
-                                    strcat(str, "\nName: ");
-                                    strcat(response, str);
-                                }
-                            } else if (buy == 2) {
-                                strcpy(price, buff);
-                                snprintf(amount, MAX_CHAR,"%d", direct_trade(current_user, trader, stock_name, atoi(price), 1));
-                                strcpy(response, "Valid amount (");
-                                strcat(response, amount);
-                                strcat(response, ")");
-                                if (atoi(amount) == 0) {
-                                    strcat(response, "Your balance is not enough!\n");
-                                    strcat(response, "Input price: ");
-                                } else {
-                                    strcat(response, "\nInput amount: ");
-                                    buy++;
-                                }
-                            } else if (buy == 3) {
-                                if (atoi(buff) > atoi(amount)) {
-                                    strcpy(response, "Invalid amount, input again:");
-                                } else {
-                                    char target[BUFFER];
-                                    strcat(direct_order, username);
-                                    strcat(direct_order, " want to buy: ");
-                                    sprintf(target, "%s of %s with price: %s (y/n)", amount, stock_name, price);
-                                    strcpy(order_direct->stock_name, stock_name);
-                                    order_direct->user_id = current_user->id;
-                                    order_direct->amount = atoi(amount);
-                                    order_direct->price = atoi(price);
-                                    order_direct->type = 0;
-                                    head_order = order_direct;
-                                    strcat(direct_order, target);
-                                    send(trader->clientfd, direct_order, strlen(direct_order), 0);
-                                    strcpy(response, "Please wait...");
-                                }
-                            } 
-                        } else if (strcmp(type,"2") == 0) {
-                            if (sell == 1) {
-                                strcpy(stock_name, buff);
-                                if(direct_trade(current_user, trader, stock_name, 0, 2) == TRUE) {
-                                    strcpy(response, "Price: ");
-                                    sell++;
-                                } else {
-                                    strcpy(response, "Stock not found\n");
-                                    char str[MAX_CHAR] = "Please choose stock to sell:";
-                                    snprintf(trader_id, MAX_CHAR,"%d", current_user->id);
-                                    strcat(str, user_stock_list(trader_id));
-                                    strcat(str, "\nName: ");
-                                    strcat(response, str);
-                                }
-                            } else if (sell == 2) {
-                                strcpy(price, buff);
-                                snprintf(amount, MAX_CHAR,"%d", direct_trade(current_user, trader, stock_name, atoi(price), 2));
-                                strcpy(response, "Valid amount (");
-                                strcat(response, amount);
-                                strcat(response, ")\nInput amount: ");
-                                if (atoi(amount) == 0) {
-                                    char str[MAX_CHAR] = "Please choose stock to sell:";
-                                    snprintf(trader_id, MAX_CHAR,"%d", current_user->id);
-                                    strcat(str, user_stock_list(trader_id));
-                                    strcat(str, "\nName: ");
-                                    sell--;
-                                }
-                                sell++;
-                            } else if (sell == 3) {
-                                if (atoi(buff) > atoi(amount)) {
-                                    strcpy(response, "Invalid amount, input again:");
-                                } else {
-                                    char target[BUFFER];
-                                    strcpy(response, "Please wait...");
-                                    strcat(direct_order, username);
-                                    strcat(direct_order, " want to sell: ");
-                                    sprintf(target, "%s of %s with price: %s (y/n)", amount, stock_name, price);
-                                    strcpy(order_direct->stock_name, stock_name);
-                                    order_direct->user_id = current_user->id;
-                                    order_direct->amount = atoi(amount);
-                                    order_direct->price = atoi(price);
-                                    order_direct->type = 1;
-                                    head_order = order_direct;
-                                    strcat(direct_order, target);
-                                    send(trader->clientfd, direct_order, strlen(direct_order), 0);
-                                }
-                            }
-                        } else if (strcmp(buff, "q") == 0) {
-                            flag_main = 0;
-                            send(clientfd, "end", strlen("end"), 0);
-                        } else {
-                            strcpy(type, buff);
-                            if (strcmp(type,"1") == 0) {
-                                char str[MAX_CHAR] = "Please choose stock to buy:";
-                                strcat(str, user_stock_list(trader_id));
-                                strcat(str, "\nName: ");
-                                strcpy(response, str);
-                                buy++;
-                            } else {
-                                char str[MAX_CHAR] = "Please choose stock to sell:";
-                                snprintf(trader_id, MAX_CHAR,"%d", current_user->id);
-                                strcat(str, user_stock_list(trader_id));
-                                strcat(str, "\nName: ");
-                                strcpy(response, str);
-                                sell++;
-                            }
+                        send(clientfd, response, strlen(response), 0);
+                    } else if (check == 2) {
+                        if (strcmp(buff, "1") == 0) {
+                            strcpy(response, get_list_stock_of_user(trader->username));
+                            // send to client list stock to sell
+                            send(clientfd, response, strlen(response), 0);
+                            check_direct_action = 1;
+                            free(get_list_stock_of_user(username));
+                            check++;
                         }
-                    }
-                    send(clientfd, response, strlen(response), 0);
+                        else if (strcmp(buff, "2") == 0)  {
+                            strcpy(response, get_list_stock_of_user(current_one->username));
+                            // send to client list stock to sell
+                            send(clientfd, response, strlen(response), 0);
+                            check_direct_action = 2;
+                            free(get_list_stock_of_user(username));
+                            check++;
+                        }
+                        else if (strcmp(buff, "q") == 0) {
+                            check_direct_action = 3;
+                            flag_main = 0;
+                            check = 0;
+                        }
+                    } else if (check == 3) {
+                        direct(clientfd, buff, current_one, trader, check_direct_action);
+                        if (strcmp(buff, "q") == 0) {
+                            check_direct_action = 3;
+                            flag_main = 0;
+                            check = 0;
+                        }
+                        // if (strcmp(type,"1") == 0) {
+                        //     if (buy == 1) {
+                        //         strcpy(stock_name, buff);
+                        //         if(direct_trade(current_user, trader, stock_name, 0, 1) == TRUE) {
+                        //             strcpy(response, "Input price: ");
+                        //             buy++;
+                        //         } else {
+                        //             strcpy(response, "Stock not found\n");
+                        //             char str[MAX_CHAR] = "Please choose stock to buy:";
+                        //             strcat(str, user_stock_list(trader_id));
+                        //             strcat(str, "\nName: ");
+                        //             strcat(response, str);
+                        //         }
+                        //     } else if (buy == 2) {
+                        //         strcpy(price, buff);
+                        //         snprintf(amount, MAX_CHAR,"%d", direct_trade(current_user, trader, stock_name, atoi(price), 1));
+                        //         strcpy(response, "Valid amount (");
+                        //         strcat(response, amount);
+                        //         strcat(response, ")");
+                        //         if (atoi(amount) == 0) {
+                        //             strcat(response, "Your balance is not enough!\n");
+                        //             strcat(response, "Input price: ");
+                        //         } else {
+                        //             strcat(response, "\nInput amount: ");
+                        //             buy++;
+                        //         }
+                        //     } else if (buy == 3) {
+                        //         if (atoi(buff) > atoi(amount)) {
+                        //             strcpy(response, "Invalid amount, input again:");
+                        //         } else {
+                        //             char target[BUFFER];
+                        //             strcat(direct_order, username);
+                        //             strcat(direct_order, " want to buy: ");
+                        //             sprintf(target, "%s of %s with price: %s (y/n)", amount, stock_name, price);
+                        //             strcpy(order_direct->stock_name, stock_name);
+                        //             order_direct->user_id = current_user->id;
+                        //             order_direct->amount = atoi(amount);
+                        //             order_direct->price = atoi(price);
+                        //             order_direct->type = 0;
+                        //             head_order = order_direct;
+                        //             strcat(direct_order, target);
+                        //             send(trader->clientfd, direct_order, strlen(direct_order), 0);
+                        //             strcpy(response, "Please wait...");
+                        //         }
+                        //     } 
+                        // } else if (strcmp(type,"2") == 0) {
+                        //     if (sell == 1) {
+                        //         strcpy(stock_name, buff);
+                        //         if(direct_trade(current_user, trader, stock_name, 0, 2) == TRUE) {
+                        //             strcpy(response, "Price: ");
+                        //             sell++;
+                        //         } else {
+                        //             strcpy(response, "Stock not found\n");
+                        //             char str[MAX_CHAR] = "Please choose stock to sell:";
+                        //             snprintf(trader_id, MAX_CHAR,"%d", current_user->id);
+                        //             strcat(str, user_stock_list(trader_id));
+                        //             strcat(str, "\nName: ");
+                        //             strcat(response, str);
+                        //         }
+                        //     } else if (sell == 2) {
+                        //         strcpy(price, buff);
+                        //         snprintf(amount, MAX_CHAR,"%d", direct_trade(current_user, trader, stock_name, atoi(price), 2));
+                        //         strcpy(response, "Valid amount (");
+                        //         strcat(response, amount);
+                        //         strcat(response, ")\nInput amount: ");
+                        //         if (atoi(amount) == 0) {
+                        //             char str[MAX_CHAR] = "Please choose stock to sell:";
+                        //             snprintf(trader_id, MAX_CHAR,"%d", current_user->id);
+                        //             strcat(str, user_stock_list(trader_id));
+                        //             strcat(str, "\nName: ");
+                        //             sell--;
+                        //         }
+                        //         sell++;
+                        //     } else if (sell == 3) {
+                        //         if (atoi(buff) > atoi(amount)) {
+                        //             strcpy(response, "Invalid amount, input again:");
+                        //         } else {
+                        //             char target[BUFFER];
+                        //             strcpy(response, "Please wait...");
+                        //             strcat(direct_order, username);
+                        //             strcat(direct_order, " want to sell: ");
+                        //             sprintf(target, "%s of %s with price: %s (y/n)", amount, stock_name, price);
+                        //             strcpy(order_direct->stock_name, stock_name);
+                        //             order_direct->user_id = current_user->id;
+                        //             order_direct->amount = atoi(amount);
+                        //             order_direct->price = atoi(price);
+                        //             order_direct->type = 1;
+                        //             head_order = order_direct;
+                        //             strcat(direct_order, target);
+                        //             send(trader->clientfd, direct_order, strlen(direct_order), 0);
+                        //         }
+                        //     }
+                        // } else if (strcmp(buff, "q") == 0) {
+                        //     flag_main = 0;
+                        //     send(clientfd, "end", strlen("end"), 0);
+                        // } else {
+                        //     strcpy(type, buff);
+                        //     if (strcmp(type,"1") == 0) {
+                        //         char str[MAX_CHAR] = "Please choose stock to buy:";
+                        //         strcat(str, user_stock_list(trader_id));
+                        //         strcat(str, "\nName: ");
+                        //         strcpy(response, str);
+                        //         buy++;
+                        //     } else {
+                        //         char str[MAX_CHAR] = "Please choose stock to sell:";
+                        //         snprintf(trader_id, MAX_CHAR,"%d", current_user->id);
+                        //         strcat(str, user_stock_list(trader_id));
+                        //         strcat(str, "\nName: ");
+                        //         strcpy(response, str);
+                        //         sell++;
+                        //     }
+                        // }
                 }
                 if(strcmp(buff, "order") == 0) {
                     flag_main = 2;
@@ -568,8 +701,9 @@ void *client_handler(void *arg){
                     flag = 1;
                     send(clientfd, response, strlen(response), 0);
                 }
-                break;   
-        }         
+                break; 
+            }  
+        }     
         memset(response, 0, strlen(response));
     }
 }
