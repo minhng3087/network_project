@@ -219,20 +219,25 @@ int direct_trade(l_user *current_user, l_user *trader,char stock_name[MAX_CHAR],
 char* online_users(l_user *current_user) {
     l_user *tmp = head_user;
     char *str = malloc(sizeof(char));
+    // char temp[2000];
+    // printf("_%s\n_",str);
     char user_id[MAX_CHAR];
     while (tmp != NULL) {
         if (tmp->is_trading == TRUE && tmp->id != current_user->id) {
+            // printf("_name:%s_\n", tmp->username);
             snprintf(user_id, MAX_CHAR,"%d", tmp->id);
             strcat(str, user_id);
             strcat(str, ". ");
             strcat(str, tmp->username);
-            strcat(str, "\n");
+            strcat(str, "|");
         }
         tmp = tmp->next;
     }
     if (strlen(str) == 0) {
         str = "There is no online user, please wait ...\n";
     }
+    // strcpy(temp, str);
+    // free(str);
     return str;
 }
 

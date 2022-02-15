@@ -197,6 +197,7 @@ void sell_stock(int clientfd, char request[BUFFER_SIZE], char username[MAX_CHAR]
     if(amount > get_amount_from_stock(&info, name_stock)) {
         strcpy(response, "Amount not enough");
         strcpy(response, "Input amount again");
+        signal = FAILED_SIGNAL;
         sell_flag = 3;
     }else {
         if(has_stock_in_overbought(name_stock) == FALSE) {
@@ -389,7 +390,7 @@ void *client_handler(void *arg){
                 }
                 break;
             }
-            case ORDER_SELL_SIGNAL: {
+            case ORDER_SELL_SIGNAL: {          
                 if (tokenCount == 4) {
                     check_action = 2;
                     order(clientfd, order_buff, username, check_action);
@@ -406,13 +407,29 @@ void *client_handler(void *arg){
                     printf("Error here");
                 }
                 break;
+            case TRANSACTION_SIGNAL: 
+                current_user = get_current_user(clientfd);
+                current_user->is_trading = TRUE;
+                strcpy(response,"");
+                strcpy(response, online_users(current_user));
+                answer(clientfd, response, TRANSACTION_SIGNAL);
+                char other_rep[1024];
+                l_user *tmp = head_user;
+                while (tmp != NULL) {
+                    if (tmp->is_trading == TRUE && tmp->id != current_user->id) {
+                        strcat(other_rep, online_users(tmp));
+                        answer(tmp->clientfd, other_rep, TRANSACTION_SIGNAL);
+                    }
+                    tmp = tmp->next;
+                }
+                break;
             case REQUEST_BUY_SUCCESS_SIGNAL:
             case REQUEST_SELL_SUCCESS_SIGNAL:
             case LOGOUT_SIGNAL:
             case MENU_SIGNAL:
             case SUCCESS_SIGNAL:
             case FAILED_SIGNAL:
-            case BET: break;
+            break;
             }
         switch(flag) {
             case 1:

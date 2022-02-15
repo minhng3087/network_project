@@ -17,6 +17,8 @@ void displayMenuWindow();
 void displayLoginWindow(int sockfd); 
 void displaySignUpWindow(int sockfd); 
 void displayMainMenuWindow(int sockfd);
+void displayOnlineUserWindow(int sockfd, char users[1024]);
+void displayTransactionWindow(int sockfd);
 void displayOrderWindow(int sockfd);
 void displayAccountInfoWindow(int sockfd, char username[1024]);
 void displayBuyMethodWindow(int sockfd);
