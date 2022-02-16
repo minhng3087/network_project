@@ -384,6 +384,29 @@ void direct_buy_stock(int clientfd, char request[BUFFER_SIZE], l_user *current, 
     send(clientfd, response, strlen(response), 0);
     // pthread_mutex_unlock(&lock);
 }
+void accept_trade()
+{
+    char response[BUFFER_SIZE];
+    strcpy(response, "Transaction succesfully!\n");
+    strcat(response, "Press q to quit");
+    if (head_order->type == 0) {
+        direct_buy(head_order, list_trade[0]);
+        direct_sell(head_order, list_trade[1]);
+    } else {
+        direct_buy(head_order, list_trade[1]);
+        direct_sell(head_order, list_trade[0]);
+    }
+    send(list_trade[0], response, strlen(response), 0);
+    send(list_trade[1], response, strlen(response), 0);
+}
+void refuse_trade()
+{
+    char response[BUFFER_SIZE];
+    strcpy(response, "Transaction not succesfully!\n");
+    strcat(response, "Press q to quit");
+    send(list_trade[0], response, strlen(response), 0);
+    send(list_trade[1], response, strlen(response), 0);
+}
 
 void direct(int clientfd, char request[BUFFER_SIZE], l_user *current, l_user *trader, int check_action) {
     switch(check_action) {
@@ -400,6 +423,7 @@ void direct(int clientfd, char request[BUFFER_SIZE], l_user *current, l_user *tr
             break;
     }
 }
+
 void *client_handler(void *arg){
     int clientfd, n, flag = 1, check = 0, buy = 0, sell = 0, flag_main,
     check_order = 0, check_action = 0, check_direct_action = 0 ;
@@ -463,25 +487,13 @@ void *client_handler(void *arg){
                     current_one->is_trading = TRUE;
                     DIRECT: 
                     if (strcmp(buff, "y") == 0 || strcmp(buff, "yes") == 0) {
-                        strcpy(response, "Transaction succesfully!\n");
-                        strcat(response, "Press q to quit");
-                        if (head_order->type == 0) {
-                            direct_buy(head_order, list_trade[0]);
-                            direct_sell(head_order, list_trade[1]);
-                        } else {
-                            direct_buy(head_order, list_trade[1]);
-                            direct_sell(head_order, list_trade[0]);
-                        }
-                        send(list_trade[0], response, strlen(response), 0);
-                        send(list_trade[1], response, strlen(response), 0);
+                        accept_trade();
                         continue;
                     } else if (strcmp(buff, "n") == 0 || strcmp(buff, "no") == 0) {
-                        strcpy(response, "Transaction not succesfully!\n");
-                        strcat(response, "Press q to quit");
-                        send(list_trade[0], response, strlen(response), 0);
-                        send(list_trade[1], response, strlen(response), 0);
+                        refuse_trade();
                         continue;
-                    } if (strcmp(buff, "q") == 0) {
+                    } 
+                    if (strcmp(buff, "q") == 0) {
                         flag_main = 0;
                         check = 0;
                         get_current_user(list_trade[0])->is_trading = FALSE;
