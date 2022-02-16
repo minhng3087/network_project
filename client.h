@@ -11,7 +11,8 @@
 #include <stdio_ext.h>
 #include <sys/types.h>
 #include "define.h"
-#include "action.h"
+
+
 
 void login();
 int program_main();
