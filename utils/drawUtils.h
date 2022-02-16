@@ -14,6 +14,7 @@ void testDraw();
 
 
 void displayMenuWindow(); 
+void displayBoardWindow(int sockfd);
 void displayLoginWindow(int sockfd); 
 void displaySignUpWindow(int sockfd); 
 void displayMainMenuWindow(int sockfd);

@@ -306,6 +306,8 @@ void accept_trade()
     strcpy(response, "Giao dịch thành công");
     // strcat(response, "Press q to quit");
     if (head_order->type == 0) {
+        // printf("trade1:%d",list_trade[0]);
+        // printf("trade2%d",list_trade[1]);
         direct_buy(head_order, list_trade[0]);
         direct_sell(head_order, list_trade[1]);
     } else {
@@ -588,6 +590,8 @@ void *client_handler(void *arg){
                 if (tokenCount == 5){
                     trader = trade_user(data[0]);
                     current_user = get_current_user(clientfd);
+                    list_trade[0] = current_user->clientfd;
+                    list_trade[1] = trader->clientfd;
                     direct_buy_stock(clientfd, order_buff,  current_user, trader);
                 }
                 break;
@@ -595,6 +599,8 @@ void *client_handler(void *arg){
                 if (tokenCount == 5){
                     trader = trade_user(data[0]);
                     current_user = get_current_user(clientfd);
+                    list_trade[0] = current_user->clientfd;
+                    list_trade[1] = trader->clientfd;
                     direct_sell_stock(clientfd, order_buff,  current_user, trader);
                 }
                 break;
